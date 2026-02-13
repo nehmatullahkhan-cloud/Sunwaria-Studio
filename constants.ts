@@ -10,6 +10,21 @@ export const DEFAULT_SETTINGS = {
   location: 'Sunwarian, AJK'
 };
 
+export const DUAS = {
+  sehri: {
+    title: { en: "Sehri Dua", ur: "دعا برائے سحری" },
+    arabic: "وَبِصَوْمِ غَدٍ نَّوَيْتُ مِنْ شَهْرِ رَمَضَانَ",
+    urdu: "اور میں نے ماہ رمضان کے کل کے روزے کی نیت کی",
+    english: "I intend to keep the fast for tomorrow in the month of Ramadan"
+  },
+  iftar: {
+    title: { en: "Iftar Dua", ur: "دعا برائے افطار" },
+    arabic: "اللَّهُمَّ اِنِّى لَكَ صُمْتُ وَبِكَ امَنْتُ وَعَلَيْكَ تَوَكَّلْتُ وَعَلَى رِزْقِكَ اَفْطَرْتُ",
+    urdu: "اے اللہ! میں نے تیرے لیے روزہ رکھا اور تجھ پر ایمان لایا اور تیرے ہی دیے ہوئے رزق سے افطار کیا",
+    english: "O Allah! I fasted for You and I believe in You and I put my trust in You and I break my fast with Your sustenance"
+  }
+};
+
 export const TRANSLATIONS: Record<Language, Translation> = {
   en: {
     title: "Sunwarian Ramadan",
@@ -36,7 +51,10 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     sehriInfo: "Sehri ends 10 mins before Fajr.",
     iftarInfo: "Iftar is at Sunset.",
     date: "Date",
-    day: "Day"
+    day: "Day",
+    ashra1: "1st Ashra - Mercy",
+    ashra2: "2nd Ashra - Forgiveness",
+    ashra3: "3rd Ashra - Salvation"
   },
   ur: {
     title: "سنواریاں رمضان",
@@ -63,7 +81,10 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     sehriInfo: "سحری کا وقت اذان سے 10 منٹ پہلے ختم ہوتا ہے۔",
     iftarInfo: "افطار کا وقت غروب آفتاب پر ہے۔",
     date: "تاریخ",
-    day: "دن"
+    day: "دن",
+    ashra1: "پہلا عشرہ - رحمت",
+    ashra2: "دوسرا عشرہ - مغفرت",
+    ashra3: "تیسرا عشرہ - نجات"
   }
 };
 

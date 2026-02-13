@@ -42,4 +42,7 @@ export interface Translation {
   iftarInfo: string;
   date: string;
   day: string;
+  ashra1: string;
+  ashra2: string;
+  ashra3: string;
 }

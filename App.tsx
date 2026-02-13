@@ -8,6 +8,8 @@ import { requestNotificationPermission, playAlarm } from './services/notificatio
 // Components
 import Countdown from './components/Countdown';
 import AdminPanel from './components/AdminPanel';
+import Calendar from './components/Calendar';
+import DuaSlider from './components/DuaSlider';
 
 // Icons
 const MoonIcon = () => <i className="fas fa-moon"></i>;
@@ -87,12 +89,6 @@ const MainApp = () => {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayData = data.find(d => d.date === todayStr);
 
-  // Helper to format English Date (e.g. "17 Feb")
-  const formatEngDate = (dateStr: string) => {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-  };
-
   return (
     <div className={`min-h-screen font-sans text-gray-800 bg-slate-100 ${settings.language === 'ur' ? 'font-urdu' : ''}`} dir={settings.language === 'ur' ? 'rtl' : 'ltr'}>
       
@@ -101,7 +97,8 @@ const MainApp = () => {
         <div className="flex justify-between items-start">
             <div>
                 <h1 className="text-xl font-bold flex items-center gap-2 text-emerald-50">
-                    <MoonIcon /> <span>{t.title}</span>
+                    <MoonIcon /> 
+                    <span className={settings.language === 'ur' ? 'font-urdu-heading pt-1' : ''}>{t.title}</span>
                 </h1>
                 <p className="text-xs text-emerald-200 mt-1 opacity-90"><i className="fas fa-map-marker-alt mr-1"></i> {settings.location}</p>
             </div>
@@ -120,7 +117,10 @@ const MainApp = () => {
                     {/* 1. NEXT EVENT (Countdown) - Large Card */}
                     <Countdown timings={data} translation={t} notificationsEnabled={settings.notificationsEnabled} />
 
-                    {/* 2. TODAY'S TIMES - Two Small Cards */}
+                    {/* 2. Dua Slider (New) */}
+                    <DuaSlider language={settings.language} timings={data} />
+
+                    {/* 3. TODAY'S TIMES - Two Small Cards */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         {/* Sehri Card */}
                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
@@ -160,35 +160,7 @@ const MainApp = () => {
             } />
             
             <Route path="/calendar" element={
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-4">
-                    <table className="w-full text-sm">
-                        <thead className="bg-emerald-50 text-emerald-900 border-b border-emerald-100">
-                            <tr>
-                                <th className="p-3 text-left font-bold">{t.date}</th>
-                                <th className="p-3 font-bold">{t.sehri}</th>
-                                <th className="p-3 text-right font-bold">{t.iftar}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map((row) => (
-                                <tr key={row.id} className={`border-b border-gray-50 last:border-0 ${row.date === todayStr ? 'bg-emerald-50/60' : ''}`}>
-                                    <td className="p-3">
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-emerald-900 text-base">{row.hijri_date} <span className="text-[10px] font-normal text-emerald-700">Ramadan</span></span>
-                                            <span className="text-gray-400 text-xs">
-                                                {settings.language === 'ur' ? row.day_ur : row.day_en} 
-                                                <span className="mx-1">•</span> 
-                                                {formatEngDate(row.date)}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="p-3 font-mono text-center text-base text-gray-700 font-medium">{row.sehri}</td>
-                                    <td className="p-3 font-mono text-right font-bold text-emerald-700 text-base">{row.iftar}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+               <Calendar data={data} translation={t} language={settings.language} />
             } />
 
             <Route path="/settings" element={
@@ -200,7 +172,7 @@ const MainApp = () => {
                                 <i className="fas fa-bell"></i>
                             </div>
                             <div>
-                                <p className="font-bold text-gray-800 text-lg">{t.notifications}</p>
+                                <p className={`font-bold text-gray-800 text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.notifications}</p>
                                 <p className="text-xs text-gray-500">{settings.notificationsEnabled ? 'On' : 'Off'}</p>
                             </div>
                         </div>
@@ -215,7 +187,7 @@ const MainApp = () => {
                              <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl">
                                 <i className="fas fa-volume-up"></i>
                             </div>
-                            <span className="font-bold text-lg">{t.testAlarm}</span>
+                            <span className={`font-bold text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.testAlarm}</span>
                         </div>
                         <i className={`fas fa-chevron-right text-gray-300 ${settings.language === 'ur' ? 'rotate-180' : ''}`}></i>
                     </button>
@@ -238,8 +210,15 @@ const MainApp = () => {
                         )}
                      </div>
                      
-                     <div className="pt-8 text-center">
-                         <Link to={ADMIN_ROUTE} className="text-gray-400 text-xs py-2 px-4 hover:text-emerald-500 transition-colors">Admin</Link>
+                     {/* Admin Link */}
+                     <div className="pt-4 text-center">
+                         <Link 
+                            to={ADMIN_ROUTE} 
+                            className="inline-flex items-center gap-2 text-gray-400 text-xs py-2 px-6 rounded-full border border-gray-200 hover:text-emerald-600 hover:border-emerald-200 transition-all"
+                         >
+                            <i className="fas fa-lock"></i>
+                            {t.adminLogin}
+                        </Link>
                      </div>
                 </div>
             } />
@@ -250,15 +229,15 @@ const MainApp = () => {
       <nav className="fixed bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 z-50 flex justify-around items-center">
         <Link to="/" className={`flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all ${location.pathname === '/' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
             <i className={`fas fa-home text-xl mb-1`}></i>
-            <span className="text-[10px] font-bold">{t.dashboard}</span>
+            <span className={`text-[10px] font-bold ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.dashboard}</span>
         </Link>
         <Link to="/calendar" className={`flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all ${location.pathname === '/calendar' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
             <i className={`fas fa-calendar-alt text-xl mb-1`}></i>
-            <span className="text-[10px] font-bold">{t.calendar}</span>
+            <span className={`text-[10px] font-bold ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.calendar}</span>
         </Link>
         <Link to="/settings" className={`flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all ${location.pathname === '/settings' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
             <i className={`fas fa-cog text-xl mb-1`}></i>
-            <span className="text-[10px] font-bold">{t.settings}</span>
+            <span className={`text-[10px] font-bold ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.settings}</span>
         </Link>
       </nav>
       
