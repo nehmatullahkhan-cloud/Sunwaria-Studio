@@ -68,16 +68,16 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
 
       if (notificationsEnabled) {
          if (isSehri && hours === 1 && minutes === 0 && seconds === 0) {
-             sendNotification("Ramadan Alert", "1 Hour remaining for Sehri!");
+             sendNotification(translation.ramadanAlert, translation.sehriAlert1Hour);
              playAlarm('beep');
          }
          if (!isSehri && hours === 0 && minutes === 20 && seconds === 0) {
-             sendNotification("Ramadan Alert", "20 Minutes to Iftar.");
+             sendNotification(translation.ramadanAlert, translation.iftarAlert20Min);
              playAlarm('beep');
          }
          if (hours === 0 && minutes === 0 && seconds === 0) {
-             const msg = isSehri ? "Sehri Time Ended!" : "Iftar Time!";
-             sendNotification("Ramadan Alert", msg);
+             const msg = isSehri ? translation.sehriEnded : translation.iftarTime;
+             sendNotification(translation.ramadanAlert, msg);
              playAlarm('alarm');
          }
       }
@@ -103,7 +103,7 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
 
       {activeTiming && (
         <div className="flex space-x-3 z-10 text-emerald-100/90 text-sm mt-4 bg-emerald-700/30 px-4 py-1 rounded-full backdrop-blur-sm">
-            <span>Hijri: {activeTiming.hijri_date}</span>
+            <span>Ramadan {activeTiming.hijri_date}</span>
             <span>•</span>
             <span>{activeTiming.day_ur}</span>
         </div>

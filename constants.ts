@@ -54,7 +54,21 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     day: "Day",
     ashra1: "1st Ashra - Mercy",
     ashra2: "2nd Ashra - Forgiveness",
-    ashra3: "3rd Ashra - Salvation"
+    ashra3: "3rd Ashra - Salvation",
+    playAudio: "Play Audio",
+    ramadanAlert: "Ramadan Alert",
+    sehriAlert1Hour: "1 Hour remaining for Sehri!",
+    iftarAlert20Min: "20 Minutes to Iftar.",
+    sehriEnded: "Sehri Time Ended!",
+    iftarTime: "Iftar Time!",
+    adminPanelTitle: "Admin Panel",
+    close: "Close",
+    cancel: "Cancel",
+    adminInstr: "Format must be strict JSON. Use 24h format.",
+    adminSuccess: "Data Updated Successfully!",
+    adminErrorJson: "Invalid JSON Format",
+    adminErrorAuth: "Wrong Password",
+    pasteJson: "Paste the full JSON array here to update the calendar."
   },
   ur: {
     title: "سنواریاں رمضان",
@@ -84,7 +98,21 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     day: "دن",
     ashra1: "پہلا عشرہ - رحمت",
     ashra2: "دوسرا عشرہ - مغفرت",
-    ashra3: "تیسرا عشرہ - نجات"
+    ashra3: "تیسرا عشرہ - نجات",
+    playAudio: "تلاوت سنیں",
+    ramadanAlert: "رمضان الرٹ",
+    sehriAlert1Hour: "سحری میں 1 گھنٹہ باقی ہے!",
+    iftarAlert20Min: "افطار میں 20 منٹ باقی ہیں۔",
+    sehriEnded: "سحری کا وقت ختم ہو گیا!",
+    iftarTime: "افطار کا وقت ہو گیا!",
+    adminPanelTitle: "ایڈمن پینل",
+    close: "بند کریں",
+    cancel: "منسوخ کریں",
+    adminInstr: "JSON فارمیٹ درست ہونا چاہیے۔ 24 گھنٹے کا وقت استعمال کریں۔",
+    adminSuccess: "ڈیٹا کامیابی سے اپ ڈیٹ ہو گیا!",
+    adminErrorJson: "غلط JSON فارمیٹ",
+    adminErrorAuth: "غلط پاس ورڈ",
+    pasteJson: "کلینڈر اپ ڈیٹ کرنے کے لیے مکمل JSON یہاں پیسٹ کریں۔"
   }
 };
 

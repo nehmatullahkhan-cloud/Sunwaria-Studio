@@ -18,7 +18,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ data, onUpdate, translation, on
     if (password === 'Sunwarian786') {
       setIsAuthenticated(true);
     } else {
-      alert('Wrong Password');
+      alert(translation.adminErrorAuth);
     }
   };
 
@@ -27,13 +27,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ data, onUpdate, translation, on
       const parsed = JSON.parse(jsonInput);
       if (Array.isArray(parsed)) {
         onUpdate(parsed);
-        alert('Data Updated Successfully! All villagers will see this if they reload.');
+        alert(translation.adminSuccess);
         onClose();
       } else {
-        alert('Invalid JSON Format: Must be an array.');
+        alert(translation.adminErrorJson);
       }
     } catch (e) {
-      alert('Invalid JSON Syntax');
+      alert(translation.adminErrorJson);
     }
   };
 
@@ -54,7 +54,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ data, onUpdate, translation, on
                 onClick={onClose}
                 className="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-bold"
             >
-                Cancel
+                {translation.cancel}
             </button>
             <button 
                 onClick={handleLogin}
@@ -72,12 +72,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ data, onUpdate, translation, on
     <div className="fixed inset-0 bg-white z-50 overflow-y-auto">
       <div className="p-6 max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-emerald-800">Admin Panel</h2>
-            <button onClick={onClose} className="text-red-500 font-bold">Close</button>
+            <h2 className="text-2xl font-bold text-emerald-800">{translation.adminPanelTitle}</h2>
+            <button onClick={onClose} className="text-red-500 font-bold">{translation.close}</button>
         </div>
         
         <p className="mb-2 text-gray-600 text-sm">
-            Paste the full JSON array here to update the calendar for the whole village.
+            {translation.pasteJson}
         </p>
         
         <textarea
@@ -96,10 +96,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ data, onUpdate, translation, on
         <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h3 className="font-bold text-yellow-800 mb-2">Instructions</h3>
             <ul className="list-disc list-inside text-sm text-yellow-700">
-                <li>Format must be strict JSON.</li>
-                <li>Use 24h format for times (e.g., 18:05).</li>
+                <li>{translation.adminInstr}</li>
                 <li>Dates must be YYYY-MM-DD.</li>
-                <li>This updates local storage. In a real app, this would push to a database.</li>
             </ul>
         </div>
       </div>

@@ -36,10 +36,18 @@ const MainApp = () => {
   useEffect(() => {
     setData(getStoredData());
 
+    // Check if app is running in standalone mode (installed)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+
+    // Show install modal if not installed
+    if (!isStandalone) {
+        setShowInstallModal(true);
+    }
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      // Automatically show the install modal when browser is ready
+      // Ensure modal is shown when installation is possible
       setShowInstallModal(true);
     };
 
@@ -77,7 +85,8 @@ const MainApp = () => {
         setShowInstallModal(false);
       }
     } else {
-        alert(t.installGuide);
+        // Fallback for browsers that don't support beforeinstallprompt (like iOS)
+        // logic handled in UI now
     }
   };
 
@@ -204,7 +213,7 @@ const MainApp = () => {
                         ) : (
                             <p className="text-sm text-gray-500 leading-relaxed mt-1">
                                 {settings.language === 'ur' 
-                                 ? 'براؤزر مینو (•••) پر ٹیپ کریں اور "Install App" منتخب کریں۔' 
+                                 ? 'براؤزر مینو (•••) پر ٹیپ کریں اور "Install App" یا "Add to Home Screen" منتخب کریں۔' 
                                  : 'Tap browser menu (•••) and select "Install App" or "Add to Home Screen".'}
                             </p>
                         )}
@@ -261,13 +270,27 @@ const MainApp = () => {
                     ? 'انٹرنیٹ کے بغیر اوقات اور درست الارم کے لیے ایپ ابھی انسٹال کریں۔' 
                     : 'Install now for offline access and accurate Sehri/Iftar alarms.'}
                 </p>
-                <button 
-                  onClick={handleInstallClick}
-                  className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold shadow-lg hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  <i className="fas fa-download text-sm"></i>
-                  {settings.language === 'ur' ? 'انسٹال کریں' : 'Install Now'}
-                </button>
+                
+                {deferredPrompt ? (
+                    <button 
+                      onClick={handleInstallClick}
+                      className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold shadow-lg hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                      <i className="fas fa-download text-sm"></i>
+                      {settings.language === 'ur' ? 'انسٹال کریں' : 'Install Now'}
+                    </button>
+                ) : (
+                    <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 text-sm text-gray-600 w-full">
+                         <p>
+                           {settings.language === 'ur' 
+                             ? 'براؤزر مینو (•••) پر ٹیپ کریں اور "Install App" یا "Add to Home Screen" منتخب کریں۔' 
+                             : 'Tap browser menu (•••) and select "Install App" or "Add to Home Screen".'}
+                         </p>
+                         <button onClick={() => setShowInstallModal(false)} className="mt-3 text-emerald-600 font-bold text-xs uppercase tracking-wide">
+                            {settings.language === 'ur' ? 'ٹھیک ہے' : 'Got it'}
+                         </button>
+                    </div>
+                )}
              </div>
           </div>
         </div>

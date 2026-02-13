@@ -45,4 +45,24 @@ export interface Translation {
   ashra1: string;
   ashra2: string;
   ashra3: string;
+  
+  // Audio
+  playAudio: string;
+
+  // Notifications
+  ramadanAlert: string;
+  sehriAlert1Hour: string;
+  iftarAlert20Min: string;
+  sehriEnded: string;
+  iftarTime: string;
+
+  // Admin Panel
+  adminPanelTitle: string;
+  close: string;
+  cancel: string;
+  adminInstr: string;
+  adminSuccess: string;
+  adminErrorJson: string;
+  adminErrorAuth: string;
+  pasteJson: string;
 }
