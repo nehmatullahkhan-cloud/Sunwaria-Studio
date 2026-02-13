@@ -11,8 +11,6 @@ import AdminPanel from './components/AdminPanel';
 
 // Icons
 const MoonIcon = () => <i className="fas fa-moon"></i>;
-const CalendarIcon = () => <i className="fas fa-calendar-alt"></i>;
-const CogIcon = () => <i className="fas fa-cog"></i>;
 
 const App = () => {
   return (
@@ -26,21 +24,29 @@ const MainApp = () => {
   const [data, setData] = useState<RamadanTiming[]>(INITIAL_RAMADAN_DATA);
   const [settings, setSettings] = useState<AppSettings>(getSettings());
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallModal, setShowInstallModal] = useState(false);
   
   const t = TRANSLATIONS[settings.language];
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load data on mount
     setData(getStoredData());
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      // Automatically show the install modal when browser is ready
+      setShowInstallModal(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
-  // Check for admin route match
   useEffect(() => {
-    if (location.pathname === ADMIN_ROUTE) {
-        setIsAdminOpen(true);
-    }
+    if (location.pathname === ADMIN_ROUTE) setIsAdminOpen(true);
   }, [location]);
 
   const toggleLanguage = () => {
@@ -60,6 +66,19 @@ const MainApp = () => {
     saveSettings(newSettings);
   };
 
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallModal(false);
+      }
+    } else {
+        alert(t.installGuide);
+    }
+  };
+
   const handleDataUpdate = (newData: RamadanTiming[]) => {
     setData(newData);
     saveStoredData(newData);
@@ -68,164 +87,212 @@ const MainApp = () => {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayData = data.find(d => d.date === todayStr);
 
+  // Helper to format English Date (e.g. "17 Feb")
+  const formatEngDate = (dateStr: string) => {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  };
+
   return (
-    <div className={`min-h-screen pb-20 font-sans text-gray-800 ${settings.language === 'ur' ? 'font-urdu' : ''}`} dir={settings.language === 'ur' ? 'rtl' : 'ltr'}>
+    <div className={`min-h-screen font-sans text-gray-800 bg-slate-100 ${settings.language === 'ur' ? 'font-urdu' : ''}`} dir={settings.language === 'ur' ? 'rtl' : 'ltr'}>
       
-      {/* Header */}
-      <header className="px-6 pt-8 pb-4 flex justify-between items-center bg-white sticky top-0 z-40 shadow-sm border-b border-gray-100">
-        <div>
-          <h1 className="text-xl font-bold text-emerald-800 flex items-center gap-2">
-            <MoonIcon /> {t.title}
-          </h1>
-          <p className="text-xs text-emerald-600 mt-1"><i className="fas fa-map-marker-alt mr-1"></i> {settings.location}</p>
+      {/* Curved Dark Header */}
+      <div className="bg-emerald-700 pb-20 pt-8 px-6 rounded-b-[2.5rem] shadow-lg text-white relative z-10">
+        <div className="flex justify-between items-start">
+            <div>
+                <h1 className="text-xl font-bold flex items-center gap-2 text-emerald-50">
+                    <MoonIcon /> <span>{t.title}</span>
+                </h1>
+                <p className="text-xs text-emerald-200 mt-1 opacity-90"><i className="fas fa-map-marker-alt mr-1"></i> {settings.location}</p>
+            </div>
+            <button onClick={toggleLanguage} className="bg-emerald-600/50 backdrop-blur-md text-white px-3 py-1 rounded-full text-xs font-bold border border-emerald-400/30">
+                {settings.language === 'en' ? 'اردو' : 'English'}
+            </button>
         </div>
-        <button onClick={toggleLanguage} className="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-          {settings.language === 'en' ? 'اردو' : 'ENG'}
-        </button>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="max-w-md mx-auto pt-6">
+      {/* Main Content Area - Overlaps Header */}
+      <main className="max-w-md mx-auto -mt-16 px-4 relative z-20 pb-24">
         
-        {/* Today's Summary */}
-        <div className="px-4 mb-4">
-             {todayData ? (
-                 <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border border-emerald-50">
-                    <div className="text-center">
-                        <p className="text-xs text-gray-500 uppercase font-bold">{t.sehri}</p>
-                        <p className="text-2xl font-bold text-emerald-700">{todayData.sehri}</p>
-                    </div>
-                    <div className="h-10 w-px bg-gray-200"></div>
-                    <div className="text-center">
-                        <p className="text-xs text-gray-500 uppercase font-bold">{t.iftar}</p>
-                        <p className="text-2xl font-bold text-emerald-700">{todayData.iftar}</p>
-                    </div>
-                 </div>
-             ) : (
-                 <div className="text-center p-4 text-gray-400 italic">No Data for Today</div>
-             )}
-        </div>
-
-        {/* Countdown */}
-        <Countdown timings={data} translation={t} notificationsEnabled={settings.notificationsEnabled} />
-
-        {/* Navigation Tabs */}
-        <div className="flex justify-center mb-6">
-          <div className="bg-white p-1 rounded-xl shadow-sm border border-gray-100 inline-flex">
-            <Link to="/" className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${location.pathname === '/' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500'}`}>
-                {t.dashboard}
-            </Link>
-            <Link to="/calendar" className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${location.pathname === '/calendar' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500'}`}>
-                {t.calendar}
-            </Link>
-            <Link to="/settings" className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${location.pathname === '/settings' ? 'bg-emerald-100 text-emerald-700' : 'text-gray-500'}`}>
-                {t.settings}
-            </Link>
-          </div>
-        </div>
-
         <Routes>
             <Route path="/" element={
-                <div className="px-4 text-center">
-                    <h3 className="text-lg font-bold text-emerald-800 mb-2">{t.today}</h3>
-                    <p className="text-gray-600 text-sm mb-4">
-                        {todayData ? `${todayData.day_en} / ${todayData.day_ur} - ${todayData.hijri_date} Ramadan` : "Loading..."}
-                    </p>
-                    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm text-left text-sm text-gray-500">
-                        <p className="mb-2"><i className="fas fa-info-circle mr-2 text-emerald-500"></i> Sehri ends 10 mins before Fajr start in Sunwarian.</p>
-                        <p><i className="fas fa-info-circle mr-2 text-emerald-500"></i> Iftar is per sunset calculation.</p>
+                <>
+                    {/* 1. NEXT EVENT (Countdown) - Large Card */}
+                    <Countdown timings={data} translation={t} notificationsEnabled={settings.notificationsEnabled} />
+
+                    {/* 2. TODAY'S TIMES - Two Small Cards */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        {/* Sehri Card */}
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+                                <i className="fas fa-cloud-moon text-lg"></i>
+                             </div>
+                             <p className="text-xs text-gray-500 font-bold uppercase">{t.sehri}</p>
+                             <p className="text-2xl font-bold text-gray-800 font-mono mt-1">
+                                {todayData ? todayData.sehri : '--:--'}
+                             </p>
+                        </div>
+
+                        {/* Iftar Card */}
+                        <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                             <div className="w-10 h-10 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mb-2">
+                                <i className="fas fa-sun text-lg"></i>
+                             </div>
+                             <p className="text-xs text-gray-500 font-bold uppercase">{t.iftar}</p>
+                             <p className="text-2xl font-bold text-gray-800 font-mono mt-1">
+                                {todayData ? todayData.iftar : '--:--'}
+                             </p>
+                        </div>
                     </div>
-                </div>
+
+                    {/* Info Card */}
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 text-sm text-gray-500 leading-relaxed">
+                        <div className="flex items-center gap-2 mb-2">
+                             <i className="fas fa-info-circle text-emerald-500"></i>
+                             <span>{t.sehriInfo}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                             <i className="fas fa-info-circle text-orange-500"></i>
+                             <span>{t.iftarInfo}</span>
+                        </div>
+                    </div>
+                </>
             } />
             
             <Route path="/calendar" element={
-                <div className="px-4">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <table className="w-full text-sm">
-                            <thead className="bg-emerald-50 text-emerald-800">
-                                <tr>
-                                    <th className="p-3 text-left">Ramadan</th>
-                                    <th className="p-3">Sehri</th>
-                                    <th className="p-3 text-right">Iftar</th>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mt-4">
+                    <table className="w-full text-sm">
+                        <thead className="bg-emerald-50 text-emerald-900 border-b border-emerald-100">
+                            <tr>
+                                <th className="p-3 text-left font-bold">{t.date}</th>
+                                <th className="p-3 font-bold">{t.sehri}</th>
+                                <th className="p-3 text-right font-bold">{t.iftar}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row) => (
+                                <tr key={row.id} className={`border-b border-gray-50 last:border-0 ${row.date === todayStr ? 'bg-emerald-50/60' : ''}`}>
+                                    <td className="p-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-emerald-900 text-base">{row.hijri_date} <span className="text-[10px] font-normal text-emerald-700">Ramadan</span></span>
+                                            <span className="text-gray-400 text-xs">
+                                                {settings.language === 'ur' ? row.day_ur : row.day_en} 
+                                                <span className="mx-1">•</span> 
+                                                {formatEngDate(row.date)}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td className="p-3 font-mono text-center text-base text-gray-700 font-medium">{row.sehri}</td>
+                                    <td className="p-3 font-mono text-right font-bold text-emerald-700 text-base">{row.iftar}</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {data.map((row) => (
-                                    <tr key={row.id} className={`border-b border-gray-50 ${row.date === todayStr ? 'bg-emerald-50/50' : ''}`}>
-                                        <td className="p-3">
-                                            <span className="font-bold">{row.hijri_date}</span>
-                                            <span className="text-gray-400 text-xs block">{row.day_ur}</span>
-                                        </td>
-                                        <td className="p-3 font-mono text-center">{row.sehri}</td>
-                                        <td className="p-3 font-mono text-right font-bold text-emerald-700">{row.iftar}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             } />
 
             <Route path="/settings" element={
-                <div className="px-4 space-y-4">
-                    
+                <div className="space-y-4 mt-4">
                     {/* Notification Toggle */}
-                    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${settings.notificationsEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center" onClick={toggleNotifications}>
+                        <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${settings.notificationsEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
                                 <i className="fas fa-bell"></i>
                             </div>
                             <div>
-                                <p className="font-bold text-gray-800">{t.notifications}</p>
-                                <p className="text-xs text-gray-500">{settings.notificationsEnabled ? 'Active' : 'Disabled'}</p>
+                                <p className="font-bold text-gray-800 text-lg">{t.notifications}</p>
+                                <p className="text-xs text-gray-500">{settings.notificationsEnabled ? 'On' : 'Off'}</p>
                             </div>
                         </div>
-                        <button 
-                            onClick={toggleNotifications}
-                            className={`w-12 h-6 rounded-full transition-colors relative ${settings.notificationsEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
-                        >
-                            <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${settings.notificationsEnabled ? 'translate-x-6' : ''}`}></div>
-                        </button>
+                        <div className={`w-12 h-7 rounded-full transition-colors relative ${settings.notificationsEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                            <div className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform shadow-sm ${settings.notificationsEnabled ? 'translate-x-5' : ''}`}></div>
+                        </div>
                     </div>
 
                     {/* Test Alarm */}
-                    <button 
-                        onClick={() => playAlarm('alarm')}
-                        className="w-full bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700 active:bg-gray-50"
-                    >
-                        <div className="flex items-center gap-3">
-                             <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center">
+                    <button onClick={() => playAlarm('alarm')} className="w-full bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700 active:bg-gray-50">
+                        <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xl">
                                 <i className="fas fa-volume-up"></i>
                             </div>
-                            <span className="font-bold">{t.testAlarm}</span>
+                            <span className="font-bold text-lg">{t.testAlarm}</span>
                         </div>
-                        <i className="fas fa-chevron-right text-gray-300"></i>
+                        <i className={`fas fa-chevron-right text-gray-300 ${settings.language === 'ur' ? 'rotate-180' : ''}`}></i>
                     </button>
 
-                     {/* Install Guide */}
-                     <div className="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-                        <h4 className="font-bold text-emerald-800 mb-2">{t.installGuide}</h4>
-                        <ol className="list-decimal list-inside text-sm text-emerald-700 space-y-1">
-                            <li>Tap browser menu (•••)</li>
-                            <li>Select "Add to Home Screen" / "Install App"</li>
-                            <li>Open from home screen for fullscreen</li>
-                        </ol>
+                     {/* Install App */}
+                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        <h4 className="font-bold text-emerald-800 mb-2 flex items-center gap-2">
+                            <i className="fas fa-mobile-alt"></i> {t.installGuide}
+                        </h4>
+                        {deferredPrompt ? (
+                            <button onClick={handleInstallClick} className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-md active:scale-95 transition-all mt-2">
+                                Install Now
+                            </button>
+                        ) : (
+                            <p className="text-sm text-gray-500 leading-relaxed mt-1">
+                                {settings.language === 'ur' 
+                                 ? 'براؤزر مینو (•••) پر ٹیپ کریں اور "Install App" منتخب کریں۔' 
+                                 : 'Tap browser menu (•••) and select "Install App" or "Add to Home Screen".'}
+                            </p>
+                        )}
                      </div>
-
-                    {/* Admin Link (Subtle) */}
-                    <div className="pt-10 text-center">
-                         <Link to={ADMIN_ROUTE} className="text-gray-300 text-xs hover:text-gray-500">
-                            Ahsaan Admin Access
-                         </Link>
-                    </div>
+                     
+                     <div className="pt-8 text-center">
+                         <Link to={ADMIN_ROUTE} className="text-gray-400 text-xs py-2 px-4 hover:text-emerald-500 transition-colors">Admin</Link>
+                     </div>
                 </div>
             } />
-            
-            {/* Hidden Admin Route */}
-            <Route path={ADMIN_ROUTE} element={<div />} /> 
         </Routes>
-
       </main>
+
+      {/* Floating Bottom Navigation */}
+      <nav className="fixed bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] p-2 z-50 flex justify-around items-center">
+        <Link to="/" className={`flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all ${location.pathname === '/' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
+            <i className={`fas fa-home text-xl mb-1`}></i>
+            <span className="text-[10px] font-bold">{t.dashboard}</span>
+        </Link>
+        <Link to="/calendar" className={`flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all ${location.pathname === '/calendar' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
+            <i className={`fas fa-calendar-alt text-xl mb-1`}></i>
+            <span className="text-[10px] font-bold">{t.calendar}</span>
+        </Link>
+        <Link to="/settings" className={`flex flex-col items-center justify-center w-full py-2 rounded-xl transition-all ${location.pathname === '/settings' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
+            <i className={`fas fa-cog text-xl mb-1`}></i>
+            <span className="text-[10px] font-bold">{t.settings}</span>
+        </Link>
+      </nav>
+      
+      {/* Install Popup Modal - Appears Automatically */}
+      {showInstallModal && (
+        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={() => setShowInstallModal(false)} />
+          <div className="bg-white w-full max-w-sm m-4 rounded-3xl p-6 shadow-2xl pointer-events-auto relative transform transition-all animate-bounce-in">
+             <button onClick={() => setShowInstallModal(false)} className="absolute top-4 right-4 text-gray-400 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100">
+               <i className="fas fa-times"></i>
+             </button>
+             <div className="flex flex-col items-center text-center pt-2">
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl mb-4 shadow-inner">
+                  <i className="fas fa-download"></i>
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  {settings.language === 'ur' ? 'ایپ انسٹال کریں' : 'Install App'}
+                </h3>
+                <p className="text-gray-500 text-sm mb-6 px-2 leading-relaxed">
+                  {settings.language === 'ur' 
+                    ? 'انٹرنیٹ کے بغیر اوقات اور درست الارم کے لیے ایپ ابھی انسٹال کریں۔' 
+                    : 'Install now for offline access and accurate Sehri/Iftar alarms.'}
+                </p>
+                <button 
+                  onClick={handleInstallClick}
+                  className="w-full bg-emerald-600 text-white py-3.5 rounded-xl font-bold shadow-lg hover:bg-emerald-700 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <i className="fas fa-download text-sm"></i>
+                  {settings.language === 'ur' ? 'انسٹال کریں' : 'Install Now'}
+                </button>
+             </div>
+          </div>
+        </div>
+      )}
 
       {/* Admin Modal */}
       {isAdminOpen && (

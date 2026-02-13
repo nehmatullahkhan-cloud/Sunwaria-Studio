@@ -38,4 +38,8 @@ export interface Translation {
   today: string;
   fasting: string;
   completed: string;
+  sehriInfo: string;
+  iftarInfo: string;
+  date: string;
+  day: string;
 }

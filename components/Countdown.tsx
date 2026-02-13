@@ -13,7 +13,6 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
   const [nextEventLabel, setNextEventLabel] = useState<string>('');
   const [activeTiming, setActiveTiming] = useState<RamadanTiming | null>(null);
   
-  // Calculate Time Logic
   useEffect(() => {
     const calculateTime = () => {
       const now = new Date();
@@ -41,14 +40,12 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
         }
       }
 
-      // If no event today or passed both, find next day's Sehri
       if (!targetDate) {
-        // Find next available date in array
         const futureTimings = timings.filter(t => new Date(t.date) > now);
         if (futureTimings.length > 0) {
           const next = futureTimings[0];
           targetDate = new Date(`${next.date}T${next.sehri}:00`);
-          label = `${translation.sehri} (${next.date})`; // "Sehri Ends (Date)"
+          label = `${translation.sehri} (${next.date})`;
           isSehri = true;
           setActiveTiming(next);
         } else {
@@ -60,7 +57,6 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
 
       setNextEventLabel(label);
 
-      // Diff calculation
       const diff = targetDate.getTime() - now.getTime();
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -70,21 +66,17 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
       );
 
-      // Trigger Alerts logic
       if (notificationsEnabled) {
-         // 1 Hour Warning (Sehri Only)
          if (isSehri && hours === 1 && minutes === 0 && seconds === 0) {
              sendNotification("Ramadan Alert", "1 Hour remaining for Sehri!");
              playAlarm('beep');
          }
-         // 20 Min Warning (Iftar Only)
          if (!isSehri && hours === 0 && minutes === 20 && seconds === 0) {
-             sendNotification("Ramadan Alert", "20 Minutes to Iftar. Prepare your Dua.");
+             sendNotification("Ramadan Alert", "20 Minutes to Iftar.");
              playAlarm('beep');
          }
-         // EXACT TIME
          if (hours === 0 && minutes === 0 && seconds === 0) {
-             const msg = isSehri ? "Sehri Time Ended! Stop eating." : "Iftar Time! You may break your fast.";
+             const msg = isSehri ? "Sehri Time Ended!" : "Iftar Time!";
              sendNotification("Ramadan Alert", msg);
              playAlarm('alarm');
          }
@@ -92,25 +84,25 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
     };
 
     const timer = setInterval(calculateTime, 1000);
-    calculateTime(); // Initial call
+    calculateTime();
     return () => clearInterval(timer);
   }, [timings, translation, notificationsEnabled]);
 
   return (
-    <div className="flex flex-col items-center justify-center p-6 bg-emerald-600 rounded-3xl shadow-lg text-white mb-6 mx-4 relative overflow-hidden">
-      {/* Decorative Circles */}
-      <div className="absolute -top-10 -left-10 w-32 h-32 bg-emerald-500 rounded-full opacity-50 blur-xl"></div>
-      <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-emerald-400 rounded-full opacity-30 blur-xl"></div>
+    <div className="flex flex-col items-center justify-center p-8 bg-emerald-600 rounded-3xl shadow-xl text-white mb-6 relative overflow-hidden min-h-[220px]">
+      {/* Decorative Elements */}
+      <div className="absolute -top-12 -left-12 w-40 h-40 bg-emerald-500 rounded-full opacity-50 blur-2xl"></div>
+      <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-emerald-400 rounded-full opacity-30 blur-2xl"></div>
 
-      <p className="text-emerald-100 text-sm font-medium tracking-wider mb-2 uppercase z-10">{translation.next}</p>
-      <h2 className="text-2xl font-bold mb-1 z-10">{nextEventLabel}</h2>
+      <p className="text-emerald-100 text-sm font-bold tracking-widest mb-2 uppercase z-10">{translation.next}</p>
+      <h2 className="text-2xl font-bold mb-2 z-10 text-center">{nextEventLabel}</h2>
       
-      <div className="text-6xl font-mono font-bold my-4 z-10 tracking-tighter tabular-nums drop-shadow-md">
+      <div className="text-6xl font-mono font-bold my-2 z-10 tracking-tighter tabular-nums drop-shadow-lg">
         {timeLeft}
       </div>
 
       {activeTiming && (
-        <div className="flex space-x-4 z-10 text-emerald-100 text-sm mt-2">
+        <div className="flex space-x-3 z-10 text-emerald-100/90 text-sm mt-4 bg-emerald-700/30 px-4 py-1 rounded-full backdrop-blur-sm">
             <span>Hijri: {activeTiming.hijri_date}</span>
             <span>•</span>
             <span>{activeTiming.day_ur}</span>

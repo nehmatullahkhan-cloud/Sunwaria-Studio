@@ -5,29 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Sunwarian Ramadan Timing</title>
     <meta name="description" content="Ramadan Timings for Sunwarian, Azad Kashmir" />
+    <meta name="theme-color" content="#047857" /> <!-- Matches emerald-700 -->
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/4358/4358667.png">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-      /* Custom Scrollbar for Webkit */
-      ::-webkit-scrollbar {
-        width: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #10b981;
-        border-radius: 10px;
-      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 4px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+      
       body {
         -webkit-tap-highlight-color: transparent;
-        background-color: #f0fdf4; /* emerald-50 */
+        background-color: #f1f5f9; /* slate-100 - Not white! */
+        overscroll-behavior-y: none; 
       }
+      
+      /* Beautiful Urdu Typography */
       .font-urdu {
         font-family: 'Noto Nastaliq Urdu', serif;
-        line-height: 2; /* Urdu requires more vertical space */
+        line-height: 2.5; 
+        letter-spacing: 0px;
       }
+      .font-urdu h1, .font-urdu h2, .font-urdu h3 { line-height: 1.8; }
     </style>
   <script type="importmap">
 {
@@ -43,5 +47,14 @@
   <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('SW registered'))
+            .catch(err => console.log('SW failed', err));
+        });
+      }
+    </script>
   </body>
 </html>

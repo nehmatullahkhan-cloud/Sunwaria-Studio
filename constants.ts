@@ -1,13 +1,12 @@
 import { RamadanTiming, Translation, Language } from './types';
 
 export const ADMIN_ROUTE = "/AdminAhsaan";
-// Versioned keys to force fresh load of defaults (Urdu) and new Data
-export const STORAGE_KEY_DATA = "sunwarian_ramadan_data_2026_v2"; 
-export const STORAGE_KEY_SETTINGS = "sunwarian_settings_v3";
+export const STORAGE_KEY_DATA = "sunwarian_ramadan_data_2026_v3"; 
+export const STORAGE_KEY_SETTINGS = "sunwarian_settings_v4";
 
 export const DEFAULT_SETTINGS = {
   notificationsEnabled: true,
-  language: 'ur' as Language, // Default to Urdu for the village
+  language: 'ur' as Language, 
   location: 'Sunwarian, AJK'
 };
 
@@ -21,8 +20,8 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     settings: "Settings",
     notifications: "Notifications",
     enableNotifications: "Enable Alerts",
-    testAlarm: "Test Alarm Sound",
-    language: "Language / زبان",
+    testAlarm: "Test Alarm",
+    language: "Language",
     installGuide: "Install App",
     adminLogin: "Admin Login",
     password: "Password",
@@ -33,10 +32,14 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     calendar: "Calendar",
     today: "Today",
     fasting: "Fasting...",
-    completed: "Completed"
+    completed: "Ramadan Completed",
+    sehriInfo: "Sehri ends 10 mins before Fajr.",
+    iftarInfo: "Iftar is at Sunset.",
+    date: "Date",
+    day: "Day"
   },
   ur: {
-    title: "سنواریاں رمضان ٹائمنگ",
+    title: "سنواریاں رمضان",
     sehri: "ختم سحری",
     iftar: "وقت افطار",
     next: "اگلا وقت",
@@ -45,7 +48,7 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     notifications: "نوٹیفکیشن",
     enableNotifications: "الرٹ آن کریں",
     testAlarm: "الارم چیک کریں",
-    language: "Language / زبان",
+    language: "زبان",
     installGuide: "ایپ انسٹال کریں",
     adminLogin: "ایڈمن لاگ ان",
     password: "پاس ورڈ",
@@ -56,7 +59,11 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     calendar: "کلینڈر",
     today: "آج",
     fasting: "روزہ جاری ہے...",
-    completed: "مکمل ہو گیا"
+    completed: "رمضان مکمل ہو گیا",
+    sehriInfo: "سحری کا وقت اذان سے 10 منٹ پہلے ختم ہوتا ہے۔",
+    iftarInfo: "افطار کا وقت غروب آفتاب پر ہے۔",
+    date: "تاریخ",
+    day: "دن"
   }
 };
 
