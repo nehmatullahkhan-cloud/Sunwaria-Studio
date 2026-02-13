@@ -25,6 +25,24 @@ export const DUAS = {
   }
 };
 
+export const ASHRA_DUAS = {
+  first: {
+    arabic: "رَبِّ اغْفِرْ وَارْحَمْ وَأَنْتَ خَيْرُ الرَّاحِمِينَ",
+    urdu: "اے میرے رب! مجھے بخش دے اور مجھ پر رحم فرما، تو سب سے بہتر رحم کرنے والا ہے۔",
+    english: "O My Lord! Forgive and have mercy, for You are the Best of those who show mercy."
+  },
+  second: {
+    arabic: "أَسْتَغْفِرُ اللَّهَ رَبِّي مِنْ كُلِّ ذَنْبٍ وَأَتُوبُ إِلَيْهِ",
+    urdu: "میں اللہ سے اپنے تمام گناہوں کی بخشش مانگتا ہوں جو میرا رب ہے اور اسی کی طرف رجوع کرتا ہوں",
+    english: "I seek forgiveness from Allah, my Lord, from every sin, and I turn to Him in repentance."
+  },
+  third: {
+    arabic: "اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ",
+    urdu: "اے اللہ! مجھے آگ کے عذاب سے بچا",
+    english: "O Allah! Save me from the fire of Hell."
+  }
+};
+
 export const TRANSLATIONS: Record<Language, Translation> = {
   en: {
     title: "Sunwarian Ramadan",
