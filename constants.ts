@@ -3,9 +3,8 @@ import { RamadanTiming, Translation, Language, LocationData } from './types';
 export const ADMIN_ROUTE = "/local-admin";
 export const GLOBAL_ADMIN_ROUTE = "/admin/ahsaan";
 
-// Pointing to the new Node.js + MongoDB backend
-// When deploying, change 'localhost' to your actual server domain
-export const REMOTE_DATA_URL = "http://localhost:5000/api/locations"; 
+// Pointing to the Vercel API Route
+export const REMOTE_DATA_URL = "/api/locations"; 
 
 export const WHATSAPP_NUMBER = "923191490380";
 
