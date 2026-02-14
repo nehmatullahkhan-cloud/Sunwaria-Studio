@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { TRANSLATIONS, INITIAL_MASTER_DATA, ADMIN_ROUTE, GLOBAL_ADMIN_ROUTE, REMOTE_DATA_URL, REMOTE_NOTES_URL, WHATSAPP_NUMBER } from './constants';
+import { TRANSLATIONS, INITIAL_MASTER_DATA, ADMIN_ROUTE, GLOBAL_ADMIN_ROUTE, REMOTE_DATA_URL, REMOTE_NOTES_URL, WHATSAPP_NUMBER, DEFAULT_WHATSAPP_COMMUNITY } from './constants';
 import { getStoredData, saveStoredData, getSettings, saveSettings, getStoredNotes, saveStoredNotes } from './services/storageService';
 import { RamadanTiming, Language, AppSettings, LocationData, Note } from './types';
 import { requestNotificationPermission, playAlarm } from './services/notificationService';
@@ -60,6 +60,7 @@ const MainApp = () => {
   // Dynamic settings from Location Data
   const activeWhatsApp = activeLocation.whatsapp_number || WHATSAPP_NUMBER;
   const activeMessage = activeLocation.custom_message;
+  const activeCommunity = activeLocation.whatsapp_community || DEFAULT_WHATSAPP_COMMUNITY;
 
   // Filter Notes: Global OR Matches Current Location
   const visibleNotes = useMemo(() => {
@@ -337,10 +338,20 @@ const MainApp = () => {
                         <i className="fas fa-chevron-right text-gray-300"></i>
                     </div>
 
+                    {/* WhatsApp Support Button */}
                     <a href={`https://wa.me/${activeWhatsApp}`} target="_blank" rel="noopener noreferrer" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl"><i className="fab fa-whatsapp"></i></div>
                             <span className={`font-bold text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.whatsappSupport}</span>
+                        </div>
+                        <i className="fas fa-external-link-alt text-gray-300 text-xs"></i>
+                    </a>
+
+                    {/* WhatsApp Community Button */}
+                    <a href={activeCommunity} target="_blank" rel="noopener noreferrer" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center text-xl"><i className="fas fa-users"></i></div>
+                            <span className={`font-bold text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.whatsappCommunity}</span>
                         </div>
                         <i className="fas fa-external-link-alt text-gray-300 text-xs"></i>
                     </a>

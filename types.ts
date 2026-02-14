@@ -17,6 +17,7 @@ export interface LocationData {
   timings: RamadanTiming[];
   whatsapp_number?: string;
   custom_message?: string;
+  whatsapp_community?: string;
 }
 
 export interface Note {
@@ -111,6 +112,7 @@ export interface Translation {
   eventTimeLabel: string;
   selectLocation: string;
   whatsappSupport: string;
+  whatsappCommunity: string;
   online: string;
   offline: string;
   addLocation: string;

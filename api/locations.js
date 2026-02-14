@@ -21,7 +21,8 @@ const LocationSchema = new mongoose.Schema({
   name_ur: String,
   timings: [TimingSchema],
   whatsapp_number: String,
-  custom_message: String
+  custom_message: String,
+  whatsapp_community: String
 });
 
 // Prevent overwriting model if already compiled

@@ -20,6 +20,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, not
   const [locNameEn, setLocNameEn] = useState('');
   const [locNameUr, setLocNameUr] = useState('');
   const [locWhatsapp, setLocWhatsapp] = useState('');
+  const [locCommunity, setLocCommunity] = useState('');
   const [locMessage, setLocMessage] = useState('');
   const [timingsJson, setTimingsJson] = useState('');
   
@@ -41,6 +42,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, not
     setLocNameEn('');
     setLocNameUr('');
     setLocWhatsapp('');
+    setLocCommunity('');
     setLocMessage('');
     setTimingsJson('[]');
   };
@@ -50,6 +52,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, not
     setLocNameEn(loc.name_en);
     setLocNameUr(loc.name_ur);
     setLocWhatsapp(loc.whatsapp_number || '');
+    setLocCommunity(loc.whatsapp_community || '');
     setLocMessage(loc.custom_message || '');
     setTimingsJson(JSON.stringify(loc.timings, null, 2));
   };
@@ -65,6 +68,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, not
         name_ur: locNameUr,
         timings: parsedTimings,
         whatsapp_number: locWhatsapp,
+        whatsapp_community: locCommunity,
         custom_message: locMessage
       };
 
@@ -243,14 +247,25 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, not
                     </div>
                 </div>
 
-                <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-1">WhatsApp Number (Optional)</label>
-                    <input 
-                        value={locWhatsapp} 
-                        onChange={e => setLocWhatsapp(e.target.value)} 
-                        placeholder="e.g., 923191490380"
-                        className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500" 
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-1">WhatsApp Number (Optional)</label>
+                        <input 
+                            value={locWhatsapp} 
+                            onChange={e => setLocWhatsapp(e.target.value)} 
+                            placeholder="e.g., 923191490380"
+                            className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500" 
+                        />
+                    </div>
+                    <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-1">WhatsApp Community (Optional)</label>
+                        <input 
+                            value={locCommunity} 
+                            onChange={e => setLocCommunity(e.target.value)} 
+                            placeholder="e.g., https://whatsapp.com/channel/..."
+                            className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500 text-xs" 
+                        />
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

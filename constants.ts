@@ -10,6 +10,7 @@ export const REMOTE_DATA_URL = "/api/locations";
 export const REMOTE_NOTES_URL = "/api/notes";
 
 export const WHATSAPP_NUMBER = "923191490380";
+export const DEFAULT_WHATSAPP_COMMUNITY = "https://whatsapp.com/channel/0029VbBlHMN5Ejy4nOt2gZ1P";
 
 export const STORAGE_KEY_DATA = "sunwarian_ramadan_master_v1"; 
 export const STORAGE_KEY_NOTES = "sunwarian_notes_v1";
@@ -166,6 +167,7 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     eventTimeLabel: "Event Time",
     selectLocation: "Change Location",
     whatsappSupport: "WhatsApp Support",
+    whatsappCommunity: "WhatsApp Community",
     online: "Online",
     offline: "Offline",
     addLocation: "Add New Location",
@@ -240,6 +242,7 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     eventTimeLabel: "وقت",
     selectLocation: "علاقہ تبدیل کریں",
     whatsappSupport: "واٹس ایپ سپورٹ",
+    whatsappCommunity: "واٹس ایپ کمیونٹی",
     online: "آن لائن",
     offline: "آف لائن",
     addLocation: "نیا علاقہ شامل کریں",
