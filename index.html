@@ -7,7 +7,9 @@
     <meta name="description" content="Ramadan Timings for Sunwarian, Azad Kashmir" />
     <meta name="theme-color" content="#047857" /> <!-- Matches emerald-700 -->
     <link rel="manifest" href="./manifest.json" />
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/4358/4358667.png">
+    
+    <!-- Custom SVG Favicon (Emerald Moon) -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path fill=%22%23047857%22 d=%22M50 5C25.1 5 5 25.1 5 50s20.1 45 45 45 45-20.1 45-45S74.9 5 50 5zm0 80c-19.3 0-35-15.7-35-35s15.7-35 35-35c3.2 0 6.3.4 9.2 1.2-16.6 6.5-28.3 22.8-28.3 41.9 0 16.2 8.4 30.5 21.2 38.6-6.4 2.2-13.3 3.3-22.1 3.3z%22/></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -52,6 +54,14 @@
       }
       .animate-event-blink {
         animation: event-blink 0.8s infinite;
+      }
+
+      @keyframes slide-up {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+      .animate-slide-up {
+        animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .no-scrollbar::-webkit-scrollbar {

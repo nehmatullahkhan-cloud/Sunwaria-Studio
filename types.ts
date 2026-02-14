@@ -91,4 +91,8 @@ export interface Translation {
   addLocation: string;
   locationName: string;
   deleteLocation: string;
+  
+  // Search
+  searchPlaceholder: string;
+  noResults: string;
 }

@@ -150,7 +150,9 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     offline: "Offline",
     addLocation: "Add New Location",
     locationName: "Location Name",
-    deleteLocation: "Delete"
+    deleteLocation: "Delete",
+    searchPlaceholder: "Search Location...",
+    noResults: "No locations found."
   },
   ur: {
     title: "سنواریاں رمضان",
@@ -207,6 +209,8 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     offline: "آف لائن",
     addLocation: "نیا علاقہ شامل کریں",
     locationName: "علاقے کا نام",
-    deleteLocation: "حذف کریں"
+    deleteLocation: "حذف کریں",
+    searchPlaceholder: "علاقہ تلاش کریں...",
+    noResults: "کوئی علاقہ نہیں ملا۔"
   }
 };

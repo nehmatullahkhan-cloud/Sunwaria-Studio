@@ -44,6 +44,10 @@ const MainApp = () => {
   const [currentTime, setCurrentTime] = useState(getTrueDate());
   const [timeIsVerified, setTimeIsVerified] = useState(isTimeSynced());
   
+  // Search Modal States
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const t = TRANSLATIONS[settings.language];
   const location = useLocation();
   const navigate = useNavigate();
@@ -135,9 +139,22 @@ const MainApp = () => {
     saveSettings(newSettings);
   };
 
-  const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    handleSettingsUpdate({ ...settings, selectedLocationId: e.target.value });
+  const selectLocation = (id: string) => {
+    handleSettingsUpdate({ ...settings, selectedLocationId: id });
+    setIsLocationModalOpen(false);
+    setSearchQuery('');
   };
+
+  // Filter Locations Logic (Flexible Search)
+  const filteredLocations = useMemo(() => {
+    if (!searchQuery) return masterData;
+    const lowerQuery = searchQuery.toLowerCase().trim();
+    return masterData.filter(loc => 
+        loc.name_en.toLowerCase().includes(lowerQuery) || 
+        loc.name_ur.includes(lowerQuery) ||
+        loc.id.toLowerCase().includes(lowerQuery)
+    );
+  }, [masterData, searchQuery]);
 
   // Derived state that updates every second with currentTime
   const todayStr = currentTime.toISOString().split('T')[0];
@@ -249,17 +266,17 @@ const MainApp = () => {
 
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
                         <p className={`font-bold text-gray-800 mb-3 ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.selectLocation}</p>
-                        <select 
-                            value={settings.selectedLocationId} 
-                            onChange={handleLocationChange}
-                            className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none appearance-none font-bold"
+                        
+                        {/* Custom Selector Trigger */}
+                        <div 
+                            onClick={() => setIsLocationModalOpen(true)}
+                            className="w-full bg-gray-50 border border-gray-200 p-3 rounded-xl flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors group"
                         >
-                            {masterData.map(loc => (
-                                <option key={loc.id} value={loc.id}>
-                                    {settings.language === 'ur' ? loc.name_ur : loc.name_en}
-                                </option>
-                            ))}
-                        </select>
+                            <span className="font-bold text-gray-700 group-hover:text-emerald-700">
+                                {settings.language === 'ur' ? activeLocation.name_ur : activeLocation.name_en}
+                            </span>
+                            <i className="fas fa-chevron-down text-gray-400 group-hover:text-emerald-500"></i>
+                        </div>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center" onClick={toggleNotifications}>
@@ -291,6 +308,85 @@ const MainApp = () => {
             } />
         </Routes>
       </main>
+
+      {/* Location Selection Modal - Half Screen Bottom Sheet */}
+      {isLocationModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
+            {/* Backdrop */}
+            <div 
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+                onClick={() => setIsLocationModalOpen(false)}
+            ></div>
+
+            {/* Modal Content */}
+            <div className="relative bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl h-[65vh] flex flex-col overflow-hidden animate-slide-up z-10">
+                
+                {/* Drag Handle (Visual cue) */}
+                <div className="w-full flex justify-center pt-3 pb-2 bg-white flex-shrink-0 cursor-pointer" onClick={() => setIsLocationModalOpen(false)}>
+                    <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+                </div>
+
+                {/* Header with Search */}
+                <div className="px-5 pb-3 bg-white flex-shrink-0">
+                    <div className="bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:shadow-md border border-transparent focus-within:border-emerald-100">
+                        <i className="fas fa-search text-gray-400"></i>
+                        <input 
+                            autoFocus
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={t.searchPlaceholder}
+                            className="bg-transparent border-none outline-none w-full text-base font-bold text-gray-700 placeholder-gray-400"
+                        />
+                        {searchQuery && (
+                            <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-red-500 transition-colors">
+                                <i className="fas fa-times-circle"></i>
+                            </button>
+                        )}
+                    </div>
+                </div>
+                
+                {/* List */}
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {filteredLocations.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-70">
+                            <i className="fas fa-map-marker-slash text-4xl mb-3"></i>
+                            <p className="font-medium">{t.noResults}</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2 pb-6">
+                            {filteredLocations.map((loc) => (
+                                <div 
+                                    key={loc.id} 
+                                    onClick={() => selectLocation(loc.id)}
+                                    className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all active:scale-[0.98] ${
+                                        loc.id === settings.selectedLocationId 
+                                        ? 'bg-emerald-50/50 border-emerald-500 shadow-sm ring-1 ring-emerald-500' 
+                                        : 'bg-white border-gray-100 hover:border-emerald-200 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    <div>
+                                        <h3 className={`font-bold text-lg ${loc.id === settings.selectedLocationId ? 'text-emerald-800' : 'text-gray-800'}`}>
+                                            {settings.language === 'ur' ? loc.name_ur : loc.name_en}
+                                        </h3>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{loc.timings.length} Days</p>
+                                    </div>
+                                    {loc.id === settings.selectedLocationId ? (
+                                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-emerald-200 shadow-lg">
+                                            <i className="fas fa-check"></i>
+                                        </div>
+                                    ) : (
+                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-300">
+                                            <i className="fas fa-chevron-right text-xs"></i>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
 
       <nav className="fixed bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-lg p-2 z-50 flex justify-around">
         <Link to="/" className={`flex flex-col items-center w-full py-2 rounded-xl ${location.pathname === '/' ? 'text-emerald-600 bg-emerald-50' : 'text-gray-400'}`}>
