@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { LocationData, Translation, RamadanTiming } from '../types';
-import { REMOTE_DATA_URL } from '../constants';
+import { LocationData, Translation, RamadanTiming, Note } from '../types';
+import { REMOTE_DATA_URL, REMOTE_NOTES_URL } from '../constants';
 
 interface GlobalAdminPanelProps {
   data: LocationData[];
   onUpdate: (newData: LocationData[]) => void;
+  notes: Note[];
+  onUpdateNotes: (newNotes: Note[]) => void;
   translation: Translation;
   onClose: () => void;
 }
 
-const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, translation, onClose }) => {
+const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, notes, onUpdateNotes, translation, onClose }) => {
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [editingLocId, setEditingLocId] = useState<string | null>(null);
@@ -21,12 +23,18 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
   const [locMessage, setLocMessage] = useState('');
   const [timingsJson, setTimingsJson] = useState('');
   
+  // Note Input Fields
+  const [newGlobalNote, setNewGlobalNote] = useState('');
+  const [newLocationNote, setNewLocationNote] = useState('');
+
   const [isSaving, setIsSaving] = useState(false);
 
   const handleLogin = () => {
     if (password === 'AhsaanGlobal786') setIsAuthenticated(true);
     else alert(translation.adminErrorAuth);
   };
+
+  // --- LOCATION LOGIC ---
 
   const startAddLocation = () => {
     setEditingLocId('new');
@@ -50,7 +58,8 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     try {
       const parsedTimings: RamadanTiming[] = JSON.parse(timingsJson);
       let newData: LocationData[];
-      
+      let locId = editingLocId === 'new' ? locNameEn.toLowerCase().replace(/\s+/g, '-') : editingLocId!;
+
       const locDataPartial = {
         name_en: locNameEn,
         name_ur: locNameUr,
@@ -61,7 +70,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
 
       if (editingLocId === 'new') {
         const newLoc: LocationData = {
-          id: locNameEn.toLowerCase().replace(/\s+/g, '-'),
+          id: locId,
           ...locDataPartial
         };
         newData = [...data, newLoc];
@@ -79,15 +88,55 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
   const deleteLocation = (id: string) => {
     if (window.confirm("Delete this location?")) {
         onUpdate(data.filter(l => l.id !== id));
+        // Also remove associated notes
+        onUpdateNotes(notes.filter(n => n.locationId !== id));
     }
   };
 
+  // --- NOTE LOGIC ---
+
+  const addGlobalNote = () => {
+    if (!newGlobalNote.trim()) return;
+    const note: Note = {
+        id: `note_${Date.now()}`,
+        text: newGlobalNote,
+        isGlobal: true
+    };
+    onUpdateNotes([...notes, note]);
+    setNewGlobalNote('');
+  };
+
+  const addLocationNote = () => {
+    if (!newLocationNote.trim() || !editingLocId) return;
+    const locId = editingLocId === 'new' ? 'temp_id_replace_later' : editingLocId;
+    const note: Note = {
+        id: `note_${Date.now()}`,
+        text: newLocationNote,
+        isGlobal: false,
+        locationId: locId
+    };
+    onUpdateNotes([...notes, note]);
+    setNewLocationNote('');
+  };
+
+  const deleteNote = (id: string) => {
+    if(window.confirm("Delete this note?")) {
+        onUpdateNotes(notes.filter(n => n.id !== id));
+    }
+  };
+
+  // --- SYNC LOGIC ---
+
   const downloadMaster = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const fullExport = {
+        locations: data,
+        notes: notes
+    };
+    const blob = new Blob([JSON.stringify(fullExport, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "master.json";
+    a.download = "master_full.json";
     a.click();
   };
 
@@ -96,17 +145,26 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     
     setIsSaving(true);
     try {
-        const response = await fetch(REMOTE_DATA_URL, {
+        // Sync Locations
+        const locResponse = await fetch(REMOTE_DATA_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: password, data: data })
         });
+        const locResult = await locResponse.json();
+
+        // Sync Notes
+        const noteResponse = await fetch(REMOTE_NOTES_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: password, data: notes })
+        });
+        const noteResult = await noteResponse.json();
         
-        const result = await response.json();
-        if (response.ok && result.success) {
-            alert("✅ Successfully synced with MongoDB!");
+        if (locResponse.ok && noteResponse.ok && locResult.success && noteResult.success) {
+            alert("✅ Successfully synced Locations & Notes with MongoDB!");
         } else {
-            alert("❌ Sync Failed: " + (result.error || "Unknown error"));
+            alert(`❌ Sync Failed. Loc: ${locResult.message || locResult.error}, Note: ${noteResult.message || noteResult.error}`);
         }
     } catch (error) {
         alert("❌ Network Error: Is the server running?");
@@ -140,6 +198,10 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     );
   }
 
+  // Filter notes for the currently edited location
+  const currentLocationNotes = notes.filter(n => n.locationId === editingLocId);
+  const globalNotes = notes.filter(n => n.isGlobal);
+
   return (
     <div className="fixed inset-0 bg-slate-100 z-[100] overflow-y-auto font-sans p-4">
       <div className="max-w-4xl mx-auto">
@@ -166,6 +228,10 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
 
         {editingLocId ? (
             <div className="bg-white p-6 rounded-xl shadow-sm space-y-4">
+                <h3 className="font-bold text-lg text-gray-800 border-b pb-2">
+                    {editingLocId === 'new' ? 'Create Location' : `Edit: ${locNameEn}`}
+                </h3>
+                
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs font-bold text-gray-400 block mb-1">Name (EN)</label>
@@ -185,17 +251,41 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
                         placeholder="e.g., 923191490380"
                         className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500" 
                     />
-                    <p className="text-[10px] text-gray-400 mt-1">Leave empty to use default.</p>
                 </div>
 
-                <div>
-                    <label className="text-xs font-bold text-gray-400 block mb-1">Custom Home Screen Message (Optional)</label>
-                    <textarea 
-                        value={locMessage} 
-                        onChange={e => setLocMessage(e.target.value)} 
-                        placeholder="Type announcements here..."
-                        className="w-full h-24 border p-3 rounded-xl focus:ring-2 ring-blue-500" 
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="text-xs font-bold text-gray-400 block mb-1">Custom Home Screen Announcement</label>
+                        <textarea 
+                            value={locMessage} 
+                            onChange={e => setLocMessage(e.target.value)} 
+                            placeholder="Pinned announcement message..."
+                            className="w-full h-32 border p-3 rounded-xl focus:ring-2 ring-blue-500" 
+                        />
+                    </div>
+                    
+                    {/* Location Specific Notes */}
+                    <div className="bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                        <label className="text-xs font-bold text-indigo-800 block mb-2">Location Notes (Added to list)</label>
+                        <div className="flex gap-2 mb-2">
+                            <input 
+                                value={newLocationNote}
+                                onChange={e => setNewLocationNote(e.target.value)}
+                                className="flex-1 text-xs p-2 rounded-lg border border-indigo-200"
+                                placeholder="Add note specific to this location..."
+                            />
+                            <button onClick={addLocationNote} className="bg-indigo-600 text-white px-3 rounded-lg text-xs"><i className="fas fa-plus"></i></button>
+                        </div>
+                        <div className="space-y-2 max-h-24 overflow-y-auto">
+                            {currentLocationNotes.map(note => (
+                                <div key={note.id} className="bg-white p-2 rounded-lg text-xs flex justify-between items-center shadow-sm">
+                                    <span>{note.text}</span>
+                                    <button onClick={() => deleteNote(note.id)} className="text-red-400 hover:text-red-600"><i className="fas fa-times"></i></button>
+                                </div>
+                            ))}
+                            {currentLocationNotes.length === 0 && <p className="text-xs text-indigo-300 italic">No notes yet.</p>}
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -209,25 +299,52 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
                 </div>
             </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {data.map(loc => (
-                    <div key={loc.id} className="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center border border-gray-100">
-                        <div>
-                            <h3 className="font-bold text-gray-800">{loc.name_en}</h3>
-                            <p className="text-xs text-gray-400">{loc.timings.length} Days</p>
-                            {loc.custom_message && <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[9px] rounded-md">Has Message</span>}
-                        </div>
-                        <div className="flex gap-2">
-                            <button onClick={() => startEditLocation(loc)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i className="fas fa-edit"></i></button>
-                            <button onClick={() => deleteLocation(loc.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i className="fas fa-trash"></i></button>
-                        </div>
+            <>
+                {/* Global Notes Section */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-indigo-500 mb-6">
+                    <h3 className="font-bold text-indigo-800 mb-2">Global Notes (Visible to All)</h3>
+                    <div className="flex gap-2 mb-4">
+                        <input 
+                            value={newGlobalNote} 
+                            onChange={e => setNewGlobalNote(e.target.value)}
+                            className="flex-1 border p-2 rounded-lg text-sm"
+                            placeholder="Enter a note that will appear for ALL locations..."
+                        />
+                        <button onClick={addGlobalNote} className="bg-indigo-600 text-white px-4 rounded-lg font-bold"><i className="fas fa-plus"></i> Add</button>
                     </div>
-                ))}
-                <button onClick={startAddLocation} className="border-2 border-dashed border-gray-300 p-6 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-all bg-white/50">
-                    <i className="fas fa-plus text-2xl mb-2"></i>
-                    <span className="font-bold">{translation.addLocation}</span>
-                </button>
-            </div>
+                    <div className="space-y-2">
+                        {globalNotes.map(note => (
+                            <div key={note.id} className="flex justify-between items-center bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                                <span className="text-sm text-indigo-900">{note.text}</span>
+                                <button onClick={() => deleteNote(note.id)} className="text-red-500 bg-white w-6 h-6 rounded-full shadow-sm hover:bg-red-50"><i className="fas fa-times"></i></button>
+                            </div>
+                        ))}
+                        {globalNotes.length === 0 && <p className="text-sm text-gray-400 italic">No global notes added.</p>}
+                    </div>
+                </div>
+
+                {/* Locations Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {data.map(loc => (
+                        <div key={loc.id} className="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center border border-gray-100">
+                            <div>
+                                <h3 className="font-bold text-gray-800">{loc.name_en}</h3>
+                                <p className="text-xs text-gray-400">{loc.timings.length} Days</p>
+                                {loc.custom_message && <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[9px] rounded-md mr-1">Announcement</span>}
+                                {notes.some(n => n.locationId === loc.id) && <span className="inline-block mt-1 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[9px] rounded-md">Notes</span>}
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => startEditLocation(loc)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i className="fas fa-edit"></i></button>
+                                <button onClick={() => deleteLocation(loc.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i className="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                    ))}
+                    <button onClick={startAddLocation} className="border-2 border-dashed border-gray-300 p-6 rounded-xl flex flex-col items-center justify-center text-gray-400 hover:border-blue-500 hover:text-blue-500 transition-all bg-white/50">
+                        <i className="fas fa-plus text-2xl mb-2"></i>
+                        <span className="font-bold">{translation.addLocation}</span>
+                    </button>
+                </div>
+            </>
         )}
       </div>
     </div>

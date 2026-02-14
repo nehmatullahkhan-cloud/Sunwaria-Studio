@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { RamadanTiming, Translation } from '../types';
+import { RamadanTiming, Translation, AppSettings } from '../types';
 import { sendNotification, playAlarm } from '../services/notificationService';
 import { getTrueDate } from '../services/timeService';
 import { formatTo12h } from '../App';
@@ -7,10 +7,10 @@ import { formatTo12h } from '../App';
 interface CountdownProps {
   timings: RamadanTiming[];
   translation: Translation;
-  notificationsEnabled: boolean;
+  settings: AppSettings;
 }
 
-const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificationsEnabled }) => {
+const Countdown: React.FC<CountdownProps> = ({ timings, translation, settings }) => {
   const [timeLeft, setTimeLeft] = useState<string>('');
   const [nextEventLabel, setNextEventLabel] = useState<string>('');
   const [activeTiming, setActiveTiming] = useState<RamadanTiming | null>(null);
@@ -87,15 +87,29 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
         `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
       );
 
-      if (notificationsEnabled) {
-         if (isSehri && hours === 1 && minutes === 0 && seconds === 0) {
-             sendNotification(translation.ramadanAlert, translation.sehriAlert1Hour);
-             playAlarm('beep');
+      if (settings.notificationsEnabled) {
+         const totalMinutesLeft = Math.floor(diff / 60000);
+         const secondsLeft = Math.floor((diff % 60000) / 1000);
+
+         // Pre-Sehri Alert
+         if (isSehri && settings.sehriAlertOffset > 0) {
+             if (totalMinutesLeft === settings.sehriAlertOffset && secondsLeft === 0) {
+                 const msg = settings.sehriAlertOffset === 60 ? translation.sehriAlert1Hour : `${settings.sehriAlertOffset} ${translation.minutes} remaining for Sehri!`;
+                 sendNotification(translation.ramadanAlert, msg);
+                 playAlarm('beep');
+             }
          }
-         if (!isSehri && hours === 0 && minutes === 20 && seconds === 0) {
-             sendNotification(translation.ramadanAlert, translation.iftarAlert20Min);
-             playAlarm('beep');
+
+         // Pre-Iftar Alert
+         if (!isSehri && settings.iftarAlertOffset > 0) {
+             if (totalMinutesLeft === settings.iftarAlertOffset && secondsLeft === 0) {
+                 const msg = settings.iftarAlertOffset === 20 ? translation.iftarAlert20Min : `${settings.iftarAlertOffset} ${translation.minutes} remaining for Iftar!`;
+                 sendNotification(translation.ramadanAlert, msg);
+                 playAlarm('beep');
+             }
          }
+
+         // Exact Time Alert
          if (hours === 0 && minutes === 0 && seconds === 0) {
              const msg = isSehri ? translation.sehriEnded : translation.iftarTime;
              sendNotification(translation.ramadanAlert, msg);
@@ -107,7 +121,7 @@ const Countdown: React.FC<CountdownProps> = ({ timings, translation, notificatio
     const timer = setInterval(calculateTime, 1000);
     calculateTime();
     return () => clearInterval(timer);
-  }, [timings, translation, notificationsEnabled]);
+  }, [timings, translation, settings]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {

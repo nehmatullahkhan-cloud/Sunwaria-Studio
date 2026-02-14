@@ -14,7 +14,7 @@ mongoose.connect(MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected to 'namaz_timing'"))
   .catch(err => console.error("❌ MongoDB Connection Error:", err));
 
-// Define Schema matching the Typescript interfaces
+// Define Schemas
 const TimingSchema = new mongoose.Schema({
   id: Number,
   date: String,
@@ -34,9 +34,19 @@ const LocationSchema = new mongoose.Schema({
   custom_message: String
 });
 
+const NoteSchema = new mongoose.Schema({
+  id: { type: String, unique: true },
+  text: String,
+  isGlobal: Boolean,
+  locationId: String
+});
+
 const LocationModel = mongoose.model('Location', LocationSchema);
+const NoteModel = mongoose.model('Note', NoteSchema);
 
 // API Routes
+
+// --- LOCATIONS ---
 
 // GET: Fetch all location data for the App
 app.get('/api/locations', async (req, res) => {
@@ -52,7 +62,6 @@ app.get('/api/locations', async (req, res) => {
 app.post('/api/locations', async (req, res) => {
   const { password, data } = req.body;
   
-  // Simple password check matching the client constant
   if (password !== 'AhsaanGlobal786') {
     return res.status(403).json({ error: "Unauthorized: Wrong Admin Password" });
   }
@@ -62,7 +71,6 @@ app.post('/api/locations', async (req, res) => {
   }
 
   try {
-    // Upsert (Update or Insert) each location
     for (const loc of data) {
       await LocationModel.findOneAndUpdate(
         { id: loc.id }, 
@@ -70,15 +78,47 @@ app.post('/api/locations', async (req, res) => {
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
     }
-    
-    // Optional: Delete locations not in the payload if you want strict syncing
-    // const ids = data.map(l => l.id);
-    // await LocationModel.deleteMany({ id: { $nin: ids } });
-
     console.log("✅ Data synced to MongoDB by Admin");
     res.json({ success: true, message: "Data saved to MongoDB" });
   } catch (e) {
     console.error("Save Error:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// --- NOTES ---
+
+// GET: Fetch all notes
+app.get('/api/notes', async (req, res) => {
+  try {
+    const notes = await NoteModel.find({}, '-_id -__v');
+    res.json(notes);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST: Sync notes (Replace All)
+app.post('/api/notes', async (req, res) => {
+  const { password, data } = req.body;
+  
+  if (password !== 'AhsaanGlobal786') {
+    return res.status(403).json({ error: "Unauthorized: Wrong Admin Password" });
+  }
+
+  if (!Array.isArray(data)) {
+    return res.status(400).json({ error: "Invalid data format" });
+  }
+
+  try {
+    // Delete all existing and replace with new list to ensure consistency
+    await NoteModel.deleteMany({});
+    await NoteModel.insertMany(data);
+    
+    console.log("✅ Notes synced to MongoDB by Admin");
+    res.json({ success: true, message: "Notes synced to MongoDB" });
+  } catch (e) {
+    console.error("Notes Save Error:", e);
     res.status(500).json({ error: e.message });
   }
 });

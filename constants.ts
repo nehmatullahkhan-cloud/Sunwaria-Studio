@@ -1,3 +1,5 @@
+
+
 import { RamadanTiming, Translation, Language, LocationData } from './types';
 
 export const ADMIN_ROUTE = "/local-admin";
@@ -5,17 +7,21 @@ export const GLOBAL_ADMIN_ROUTE = "/admin/ahsaan";
 
 // Pointing to the Vercel API Route
 export const REMOTE_DATA_URL = "/api/locations"; 
+export const REMOTE_NOTES_URL = "/api/notes";
 
 export const WHATSAPP_NUMBER = "923191490380";
 
 export const STORAGE_KEY_DATA = "sunwarian_ramadan_master_v1"; 
+export const STORAGE_KEY_NOTES = "sunwarian_notes_v1";
 export const STORAGE_KEY_SETTINGS = "sunwarian_settings_v5";
 
 export const DEFAULT_SETTINGS = {
   notificationsEnabled: true,
   language: 'ur' as Language, 
   selectedLocationId: 'sunwarian',
-  autoSync: true
+  autoSync: true,
+  sehriAlertOffset: 60, // 1 hour default
+  iftarAlertOffset: 20  // 20 min default
 };
 
 export const INITIAL_RAMADAN_DATA: RamadanTiming[] = [
@@ -129,6 +135,21 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     iftarAlert20Min: "20 Minutes to Iftar.",
     sehriEnded: "Sehri Time Ended!",
     iftarTime: "Iftar Time!",
+    
+    // Notification Settings
+    notificationsSetting: "Notifications & Alerts",
+    configureAlerts: "Configure Alerts",
+    sehriAlertTime: "Sehri Alert",
+    iftarAlertTime: "Iftar Alert",
+    timeOptionOff: "Off",
+    timeOption10Min: "10 Minutes Before",
+    timeOption20Min: "20 Minutes Before",
+    timeOption30Min: "30 Minutes Before",
+    timeOption1Hour: "1 Hour Before",
+    timeOption2Hours: "2 Hours Before",
+    preAlertLabel: "Pre-Alarm",
+    minutes: "Minutes",
+
     adminPanelTitle: "Local Data Panel",
     close: "Close",
     cancel: "Cancel",
@@ -188,6 +209,21 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     iftarAlert20Min: "افطار میں 20 منٹ باقی ہیں۔",
     sehriEnded: "سحری کا وقت ختم ہو گیا!",
     iftarTime: "افطار کا وقت ہو گیا!",
+
+    // Notification Settings
+    notificationsSetting: "نوٹیفکیشن اور الرٹ",
+    configureAlerts: "ترتیبات",
+    sehriAlertTime: "سحری کا الرٹ",
+    iftarAlertTime: "افطار کا الرٹ",
+    timeOptionOff: "بند",
+    timeOption10Min: "10 منٹ پہلے",
+    timeOption20Min: "20 منٹ پہلے",
+    timeOption30Min: "30 منٹ پہلے",
+    timeOption1Hour: "1 گھنٹہ پہلے",
+    timeOption2Hours: "2 گھنٹے پہلے",
+    preAlertLabel: "پری الارم",
+    minutes: "منٹ",
+
     adminPanelTitle: "لوکل ڈیٹا پینل",
     close: "بند کریں",
     cancel: "منسوخ کریں",

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
-import { TRANSLATIONS, INITIAL_MASTER_DATA, ADMIN_ROUTE, GLOBAL_ADMIN_ROUTE, REMOTE_DATA_URL, WHATSAPP_NUMBER } from './constants';
-import { getStoredData, saveStoredData, getSettings, saveSettings } from './services/storageService';
-import { RamadanTiming, Language, AppSettings, LocationData } from './types';
+import { TRANSLATIONS, INITIAL_MASTER_DATA, ADMIN_ROUTE, GLOBAL_ADMIN_ROUTE, REMOTE_DATA_URL, REMOTE_NOTES_URL, WHATSAPP_NUMBER } from './constants';
+import { getStoredData, saveStoredData, getSettings, saveSettings, getStoredNotes, saveStoredNotes } from './services/storageService';
+import { RamadanTiming, Language, AppSettings, LocationData, Note } from './types';
 import { requestNotificationPermission, playAlarm } from './services/notificationService';
 import { syncTimeWithNetwork, getTrueDate, isTimeSynced } from './services/timeService';
 
@@ -37,6 +37,7 @@ const App = () => {
 
 const MainApp = () => {
   const [masterData, setMasterData] = useState<LocationData[]>(INITIAL_MASTER_DATA);
+  const [notesData, setNotesData] = useState<Note[]>([]);
   const [settings, setSettings] = useState<AppSettings>(getSettings());
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isLocalAdminOpen, setIsLocalAdminOpen] = useState(false);
@@ -44,8 +45,9 @@ const MainApp = () => {
   const [currentTime, setCurrentTime] = useState(getTrueDate());
   const [timeIsVerified, setTimeIsVerified] = useState(isTimeSynced());
   
-  // Search Modal States
+  // Modal States
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   const t = TRANSLATIONS[settings.language];
@@ -58,6 +60,11 @@ const MainApp = () => {
   // Dynamic settings from Location Data
   const activeWhatsApp = activeLocation.whatsapp_number || WHATSAPP_NUMBER;
   const activeMessage = activeLocation.custom_message;
+
+  // Filter Notes: Global OR Matches Current Location
+  const visibleNotes = useMemo(() => {
+    return notesData.filter(note => note.isGlobal || note.locationId === settings.selectedLocationId);
+  }, [notesData, settings.selectedLocationId]);
 
   const performTimeSync = async () => {
     const res = await syncTimeWithNetwork();
@@ -78,6 +85,7 @@ const MainApp = () => {
     window.addEventListener('offline', handleOffline);
     
     setMasterData(getStoredData());
+    setNotesData(getStoredNotes());
 
     if (navigator.onLine) {
       performTimeSync();
@@ -96,6 +104,7 @@ const MainApp = () => {
 
   useEffect(() => {
     if (settings.autoSync && isOnline) {
+        // Fetch Locations
         fetch(REMOTE_DATA_URL)
             .then(res => res.ok ? res.json() : null)
             .then((remoteMaster: LocationData[]) => {
@@ -110,7 +119,20 @@ const MainApp = () => {
                     }
                 }
             })
-            .catch(err => console.log('Auto Sync failed:', err));
+            .catch(err => console.log('Auto Sync failed (Locations):', err));
+        
+        // Fetch Notes
+        fetch(REMOTE_NOTES_URL)
+            .then(res => res.ok ? res.json() : null)
+            .then((remoteNotes: Note[]) => {
+                if (Array.isArray(remoteNotes)) {
+                    if (JSON.stringify(remoteNotes) !== JSON.stringify(notesData)) {
+                        setNotesData(remoteNotes);
+                        saveStoredNotes(remoteNotes);
+                    }
+                }
+            })
+            .catch(err => console.log('Auto Sync failed (Notes):', err));
     }
   }, [settings.autoSync, isOnline]);
 
@@ -126,12 +148,11 @@ const MainApp = () => {
     saveSettings(newSettings);
   };
 
-  const toggleNotifications = async () => {
-    if (!settings.notificationsEnabled) {
-      const granted = await requestNotificationPermission();
-      if (!granted) return;
-    }
-    handleSettingsUpdate({ ...settings, notificationsEnabled: !settings.notificationsEnabled });
+  const checkNotificationPermission = async () => {
+      if (!settings.notificationsEnabled) {
+          await requestNotificationPermission();
+      }
+      setIsNotificationModalOpen(true);
   };
 
   const handleSettingsUpdate = (newSettings: AppSettings) => {
@@ -159,6 +180,15 @@ const MainApp = () => {
   // Derived state that updates every second with currentTime
   const todayStr = currentTime.toISOString().split('T')[0];
   const todayData = activeTimings.find(d => d.date === todayStr);
+
+  const alertOptions = [
+    { label: t.timeOption2Hours, value: 120 },
+    { label: t.timeOption1Hour, value: 60 },
+    { label: t.timeOption30Min, value: 30 },
+    { label: t.timeOption20Min, value: 20 },
+    { label: t.timeOption10Min, value: 10 },
+    { label: t.timeOptionOff, value: 0 },
+  ];
 
   return (
     <div className={`min-h-screen font-sans text-gray-800 bg-slate-100 ${settings.language === 'ur' ? 'font-urdu' : ''}`} dir={settings.language === 'ur' ? 'rtl' : 'ltr'}>
@@ -221,7 +251,7 @@ const MainApp = () => {
         <Routes>
             <Route path="/" element={
                 <>
-                    <Countdown timings={activeTimings} translation={t} notificationsEnabled={settings.notificationsEnabled} />
+                    <Countdown timings={activeTimings} translation={t} settings={settings} />
                     <DuaSlider language={settings.language} timings={activeTimings} currentTime={currentTime} />
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
@@ -239,6 +269,23 @@ const MainApp = () => {
                              <p className="text-lg font-bold text-gray-800 font-mono mt-1">{formatTo12h(todayData?.iftar)}</p>
                         </div>
                     </div>
+
+                    {/* NOTES SECTION (Global + Location) */}
+                    {visibleNotes.length > 0 && (
+                        <div className="mb-4 space-y-3">
+                            {visibleNotes.map(note => (
+                                <div key={note.id} className="bg-indigo-50 border-l-4 border-indigo-400 p-4 rounded-r-xl shadow-sm animate-pulse-slow">
+                                    <div className="flex items-center gap-2 mb-1 text-indigo-800">
+                                        <i className="fas fa-sticky-note text-sm"></i>
+                                        <span className="font-bold text-xs uppercase tracking-wider">{note.isGlobal ? 'Global Note' : 'Note'}</span>
+                                    </div>
+                                    <p className="text-sm text-indigo-700 font-medium whitespace-pre-line leading-relaxed">
+                                        {note.text}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     
                     {/* Custom Announcement Message from Admin */}
                     {activeMessage && (
@@ -279,16 +326,15 @@ const MainApp = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center" onClick={toggleNotifications}>
+                    {/* Notification Settings Button */}
+                    <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50 transition-colors" onClick={checkNotificationPermission}>
                         <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 rounded-full flex items-center justify-center text-xl ${settings.notificationsEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}><i className="fas fa-bell"></i></div>
                             <div>
-                                <p className={`font-bold text-gray-800 text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.notifications}</p>
+                                <p className={`font-bold text-gray-800 text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.notificationsSetting}</p>
                             </div>
                         </div>
-                        <div className={`w-12 h-7 rounded-full relative ${settings.notificationsEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}>
-                            <div className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform ${settings.notificationsEnabled ? 'translate-x-5' : ''}`}></div>
-                        </div>
+                        <i className="fas fa-chevron-right text-gray-300"></i>
                     </div>
 
                     <a href={`https://wa.me/${activeWhatsApp}`} target="_blank" rel="noopener noreferrer" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700">
@@ -309,43 +355,21 @@ const MainApp = () => {
         </Routes>
       </main>
 
-      {/* Location Selection Modal - Half Screen Bottom Sheet */}
+      {/* Location Selection Modal */}
       {isLocationModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
-            {/* Backdrop */}
-            <div 
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
-                onClick={() => setIsLocationModalOpen(false)}
-            ></div>
-
-            {/* Modal Content */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setIsLocationModalOpen(false)}></div>
             <div className="relative bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl h-[65vh] flex flex-col overflow-hidden animate-slide-up z-10">
-                
-                {/* Drag Handle (Visual cue) */}
                 <div className="w-full flex justify-center pt-3 pb-2 bg-white flex-shrink-0 cursor-pointer" onClick={() => setIsLocationModalOpen(false)}>
                     <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
                 </div>
-
-                {/* Header with Search */}
                 <div className="px-5 pb-3 bg-white flex-shrink-0">
-                    <div className="bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3 transition-all focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:shadow-md border border-transparent focus-within:border-emerald-100">
+                    <div className="bg-gray-100 rounded-2xl px-4 py-3 flex items-center gap-3 border border-transparent focus-within:border-emerald-100 focus-within:bg-white focus-within:shadow-md transition-all">
                         <i className="fas fa-search text-gray-400"></i>
-                        <input 
-                            autoFocus
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={t.searchPlaceholder}
-                            className="bg-transparent border-none outline-none w-full text-base font-bold text-gray-700 placeholder-gray-400"
-                        />
-                        {searchQuery && (
-                            <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-red-500 transition-colors">
-                                <i className="fas fa-times-circle"></i>
-                            </button>
-                        )}
+                        <input autoFocus value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t.searchPlaceholder} className="bg-transparent border-none outline-none w-full text-base font-bold text-gray-700 placeholder-gray-400" />
+                        {searchQuery && <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-red-500"><i className="fas fa-times-circle"></i></button>}
                     </div>
                 </div>
-                
-                {/* List */}
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                     {filteredLocations.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-full text-gray-400 opacity-70">
@@ -355,30 +379,12 @@ const MainApp = () => {
                     ) : (
                         <div className="space-y-2 pb-6">
                             {filteredLocations.map((loc) => (
-                                <div 
-                                    key={loc.id} 
-                                    onClick={() => selectLocation(loc.id)}
-                                    className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all active:scale-[0.98] ${
-                                        loc.id === settings.selectedLocationId 
-                                        ? 'bg-emerald-50/50 border-emerald-500 shadow-sm ring-1 ring-emerald-500' 
-                                        : 'bg-white border-gray-100 hover:border-emerald-200 hover:bg-gray-50'
-                                    }`}
-                                >
+                                <div key={loc.id} onClick={() => selectLocation(loc.id)} className={`p-4 rounded-2xl border flex items-center justify-between cursor-pointer transition-all active:scale-[0.98] ${loc.id === settings.selectedLocationId ? 'bg-emerald-50/50 border-emerald-500 shadow-sm ring-1 ring-emerald-500' : 'bg-white border-gray-100 hover:border-emerald-200 hover:bg-gray-50'}`}>
                                     <div>
-                                        <h3 className={`font-bold text-lg ${loc.id === settings.selectedLocationId ? 'text-emerald-800' : 'text-gray-800'}`}>
-                                            {settings.language === 'ur' ? loc.name_ur : loc.name_en}
-                                        </h3>
+                                        <h3 className={`font-bold text-lg ${loc.id === settings.selectedLocationId ? 'text-emerald-800' : 'text-gray-800'}`}>{settings.language === 'ur' ? loc.name_ur : loc.name_en}</h3>
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{loc.timings.length} Days</p>
                                     </div>
-                                    {loc.id === settings.selectedLocationId ? (
-                                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-emerald-200 shadow-lg">
-                                            <i className="fas fa-check"></i>
-                                        </div>
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-300">
-                                            <i className="fas fa-chevron-right text-xs"></i>
-                                        </div>
-                                    )}
+                                    {loc.id === settings.selectedLocationId ? <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-emerald-200 shadow-lg"><i className="fas fa-check"></i></div> : <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-300"><i className="fas fa-chevron-right text-xs"></i></div>}
                                 </div>
                             ))}
                         </div>
@@ -386,6 +392,87 @@ const MainApp = () => {
                 </div>
             </div>
         </div>
+      )}
+
+      {/* Notifications Settings Modal */}
+      {isNotificationModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setIsNotificationModalOpen(false)}></div>
+              <div className="relative bg-white w-full max-w-md rounded-t-[2.5rem] sm:rounded-3xl shadow-2xl overflow-hidden animate-slide-up z-10">
+                  <div className="w-full flex justify-center pt-3 pb-2 bg-white flex-shrink-0 cursor-pointer" onClick={() => setIsNotificationModalOpen(false)}>
+                      <div className="w-12 h-1.5 bg-gray-200 rounded-full"></div>
+                  </div>
+                  
+                  <div className="p-6 pb-10">
+                      <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                          <i className="fas fa-bell text-emerald-600"></i>
+                          {t.notificationsSetting}
+                      </h2>
+
+                      {/* Master Toggle */}
+                      <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex justify-between items-center mb-6">
+                          <div>
+                              <p className="font-bold text-emerald-900">{t.enableNotifications}</p>
+                          </div>
+                          <div 
+                              className={`w-12 h-7 rounded-full relative cursor-pointer transition-colors ${settings.notificationsEnabled ? 'bg-emerald-500' : 'bg-gray-300'}`}
+                              onClick={() => handleSettingsUpdate({...settings, notificationsEnabled: !settings.notificationsEnabled})}
+                          >
+                              <div className={`absolute top-1 left-1 bg-white w-5 h-5 rounded-full transition-transform shadow-sm ${settings.notificationsEnabled ? 'translate-x-5' : ''}`}></div>
+                          </div>
+                      </div>
+
+                      {/* Alert Configurations */}
+                      {settings.notificationsEnabled && (
+                          <div className="space-y-4 animate-slide-up">
+                              {/* Sehri Config */}
+                              <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                  <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center gap-2 text-blue-600">
+                                          <i className="fas fa-cloud-moon"></i>
+                                          <span className="font-bold">{t.sehriAlertTime}</span>
+                                      </div>
+                                      <span className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-md font-bold">{t.preAlertLabel}</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2">
+                                      {alertOptions.map((opt) => (
+                                          <button
+                                              key={`sehri-${opt.value}`}
+                                              onClick={() => handleSettingsUpdate({...settings, sehriAlertOffset: opt.value})}
+                                              className={`text-xs py-2 px-1 rounded-lg border transition-all font-medium ${settings.sehriAlertOffset === opt.value ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'}`}
+                                          >
+                                              {opt.label}
+                                          </button>
+                                      ))}
+                                  </div>
+                              </div>
+
+                              {/* Iftar Config */}
+                              <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                  <div className="flex items-center justify-between mb-3">
+                                      <div className="flex items-center gap-2 text-orange-500">
+                                          <i className="fas fa-sun"></i>
+                                          <span className="font-bold">{t.iftarAlertTime}</span>
+                                      </div>
+                                      <span className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-md font-bold">{t.preAlertLabel}</span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2">
+                                      {alertOptions.map((opt) => (
+                                          <button
+                                              key={`iftar-${opt.value}`}
+                                              onClick={() => handleSettingsUpdate({...settings, iftarAlertOffset: opt.value})}
+                                              className={`text-xs py-2 px-1 rounded-lg border transition-all font-medium ${settings.iftarAlertOffset === opt.value ? 'bg-orange-500 text-white border-orange-500 shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300'}`}
+                                          >
+                                              {opt.label}
+                                          </button>
+                                      ))}
+                                  </div>
+                              </div>
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
       )}
 
       <nav className="fixed bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md border border-white/50 rounded-2xl shadow-lg p-2 z-50 flex justify-around">
@@ -417,7 +504,14 @@ const MainApp = () => {
       )}
 
       {isGlobalAdminOpen && (
-        <GlobalAdminPanel data={masterData} onUpdate={(m) => { setMasterData(m); saveStoredData(m); }} translation={t} onClose={() => { setIsGlobalAdminOpen(false); navigate('/'); }} />
+        <GlobalAdminPanel 
+            data={masterData} 
+            onUpdate={(m) => { setMasterData(m); saveStoredData(m); }}
+            notes={notesData}
+            onUpdateNotes={(n) => { setNotesData(n); saveStoredNotes(n); }}
+            translation={t} 
+            onClose={() => { setIsGlobalAdminOpen(false); navigate('/'); }} 
+        />
       )}
     </div>
   );

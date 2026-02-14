@@ -1,3 +1,5 @@
+
+
 export interface RamadanTiming {
   id: number;
   date: string; // YYYY-MM-DD
@@ -17,6 +19,13 @@ export interface LocationData {
   custom_message?: string;
 }
 
+export interface Note {
+  id: string;
+  text: string;
+  isGlobal: boolean;
+  locationId?: string; // Required if isGlobal is false
+}
+
 export type Language = 'en' | 'ur';
 
 export interface AppSettings {
@@ -25,6 +34,8 @@ export interface AppSettings {
   selectedLocationId: string;
   autoSync: boolean;
   lastSyncTime?: string;
+  sehriAlertOffset: number; // minutes, 0 = off
+  iftarAlertOffset: number; // minutes, 0 = off
 }
 
 export interface Translation {
@@ -66,6 +77,20 @@ export interface Translation {
   iftarAlert20Min: string;
   sehriEnded: string;
   iftarTime: string;
+  
+  // Notification Settings
+  notificationsSetting: string;
+  configureAlerts: string;
+  sehriAlertTime: string;
+  iftarAlertTime: string;
+  timeOptionOff: string;
+  timeOption10Min: string;
+  timeOption20Min: string;
+  timeOption30Min: string;
+  timeOption1Hour: string;
+  timeOption2Hours: string;
+  preAlertLabel: string;
+  minutes: string;
 
   // Admin Panel
   adminPanelTitle: string;
