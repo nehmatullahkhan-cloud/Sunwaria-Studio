@@ -159,6 +159,17 @@ const MainApp = () => {
                         <i className="fas fa-map-marker-alt"></i> {settings.language === 'ur' ? activeLocation.name_ur : activeLocation.name_en}
                     </p>
                     
+                    {/* Date Display */}
+                    <p className="text-[10px] text-emerald-50 font-mono flex items-center gap-1 mt-0.5">
+                        <i className="fas fa-calendar-day"></i>
+                        {currentTime.toLocaleDateString('en-GB', { 
+                            weekday: 'short', 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric' 
+                        })}
+                    </p>
+                    
                     {/* Clock with Sync Status Badge */}
                     <div className="flex items-center gap-2 mt-0.5">
                         <p className="text-[10px] text-emerald-50 font-mono flex items-center gap-1">
