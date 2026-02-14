@@ -8,12 +8,21 @@ export interface RamadanTiming {
   hijri_date: number;
 }
 
+export interface LocationData {
+  id: string;
+  name_en: string;
+  name_ur: string;
+  timings: RamadanTiming[];
+}
+
 export type Language = 'en' | 'ur';
 
 export interface AppSettings {
   notificationsEnabled: boolean;
   language: Language;
-  location: string;
+  selectedLocationId: string;
+  autoSync: boolean;
+  lastSyncTime?: string;
 }
 
 export interface Translation {
@@ -65,4 +74,19 @@ export interface Translation {
   adminErrorJson: string;
   adminErrorAuth: string;
   pasteJson: string;
+  
+  // Sync & Locations
+  autoSync: string;
+  autoSyncDesc: string;
+  globalAdminTitle: string;
+  downloadJson: string;
+  refLabel: string;
+  eventTimeLabel: string;
+  selectLocation: string;
+  whatsappSupport: string;
+  online: string;
+  offline: string;
+  addLocation: string;
+  locationName: string;
+  deleteLocation: string;
 }

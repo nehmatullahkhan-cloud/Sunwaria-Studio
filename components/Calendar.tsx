@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { RamadanTiming, Translation, Language } from '../types';
 import { ASHRA_DUAS } from '../constants';
+import { formatTo12h } from '../App';
 
 interface CalendarProps {
   data: RamadanTiming[];
@@ -80,11 +81,11 @@ const Calendar: React.FC<CalendarProps> = ({ data, translation, language }) => {
                         </span>
                     </div>
                 </td>
-                <td className={`p-3 font-mono text-center text-base font-medium ${isToday ? 'text-gray-900 font-bold' : 'text-gray-600'}`}>
-                    {row.sehri}
+                <td className={`p-3 font-mono text-center text-[10px] font-medium ${isToday ? 'text-gray-900 font-bold' : 'text-gray-600'}`}>
+                    {formatTo12h(row.sehri)}
                 </td>
-                <td className={`p-3 font-mono text-right font-bold text-base ${isToday ? 'text-emerald-700 scale-110 origin-right' : 'text-emerald-700'}`}>
-                    {row.iftar}
+                <td className={`p-3 font-mono text-right font-bold text-[10px] ${isToday ? 'text-emerald-700 scale-105 origin-right' : 'text-emerald-700'}`}>
+                    {formatTo12h(row.iftar)}
                 </td>
               </tr>
             );

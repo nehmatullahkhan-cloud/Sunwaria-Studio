@@ -1,14 +1,61 @@
-import { RamadanTiming, Translation, Language } from './types';
+import { RamadanTiming, Translation, Language, LocationData } from './types';
 
-export const ADMIN_ROUTE = "/AdminAhsaan";
-export const STORAGE_KEY_DATA = "sunwarian_ramadan_data_2026_v3"; 
-export const STORAGE_KEY_SETTINGS = "sunwarian_settings_v4";
+export const ADMIN_ROUTE = "/local-admin";
+export const GLOBAL_ADMIN_ROUTE = "/admin/ahsaan";
+export const REMOTE_DATA_URL = "https://sunwarian-ramadan.vercel.app/data/master.json"; 
+export const WHATSAPP_NUMBER = "923191490380"; // Updated WhatsApp support number
+
+export const STORAGE_KEY_DATA = "sunwarian_ramadan_master_v1"; 
+export const STORAGE_KEY_SETTINGS = "sunwarian_settings_v5";
 
 export const DEFAULT_SETTINGS = {
   notificationsEnabled: true,
   language: 'ur' as Language, 
-  location: 'Sunwarian, AJK'
+  selectedLocationId: 'sunwarian',
+  autoSync: true
 };
+
+export const INITIAL_RAMADAN_DATA: RamadanTiming[] = [
+  { id: 1, date: "2026-02-17", day_en: "Tuesday", day_ur: "منگل", sehri: "05:25", iftar: "17:50", hijri_date: 1 },
+  { id: 2, date: "2026-02-18", day_en: "Wednesday", day_ur: "بدھ", sehri: "05:24", iftar: "17:51", hijri_date: 2 },
+  { id: 3, date: "2026-02-19", day_en: "Thursday", day_ur: "جمعرات", sehri: "05:23", iftar: "17:52", hijri_date: 3 },
+  { id: 4, date: "2026-02-20", day_en: "Friday", day_ur: "جمعہ", sehri: "05:22", iftar: "17:53", hijri_date: 4 },
+  { id: 5, date: "2026-02-21", day_en: "Saturday", day_ur: "ہفتہ", sehri: "05:21", iftar: "17:54", hijri_date: 5 },
+  { id: 6, date: "2026-02-22", day_en: "Sunday", day_ur: "اتوار", sehri: "05:20", iftar: "17:55", hijri_date: 6 },
+  { id: 7, date: "2026-02-23", day_en: "Monday", day_ur: "پیر", sehri: "05:19", iftar: "17:56", hijri_date: 7 },
+  { id: 8, date: "2026-02-24", day_en: "Tuesday", day_ur: "منگل", sehri: "05:17", iftar: "17:57", hijri_date: 8 },
+  { id: 9, date: "2026-02-25", day_en: "Wednesday", day_ur: "بدھ", sehri: "05:16", iftar: "17:58", hijri_date: 9 },
+  { id: 10, date: "2026-02-26", day_en: "Thursday", day_ur: "جمعرات", sehri: "05:15", iftar: "17:59", hijri_date: 10 },
+  { id: 11, date: "2026-02-27", day_en: "Friday", day_ur: "جمعہ", sehri: "05:14", iftar: "18:00", hijri_date: 11 },
+  { id: 12, date: "2026-02-28", day_en: "Saturday", day_ur: "ہفتہ", sehri: "05:13", iftar: "18:01", hijri_date: 12 },
+  { id: 13, date: "2026-03-01", day_en: "Sunday", day_ur: "اتوار", sehri: "05:11", iftar: "18:02", hijri_date: 13 },
+  { id: 14, date: "2026-03-02", day_en: "Monday", day_ur: "پیر", sehri: "05:10", iftar: "18:03", hijri_date: 14 },
+  { id: 15, date: "2026-03-03", day_en: "Tuesday", day_ur: "منگل", sehri: "05:09", iftar: "18:04", hijri_date: 15 },
+  { id: 16, date: "2026-03-04", day_en: "Wednesday", day_ur: "بدھ", sehri: "05:08", iftar: "18:04", hijri_date: 16 },
+  { id: 17, date: "2026-03-05", day_en: "Thursday", day_ur: "جمعرات", sehri: "05:06", iftar: "18:05", hijri_date: 17 },
+  { id: 18, date: "2026-03-06", day_en: "Friday", day_ur: "جمعہ", sehri: "05:05", iftar: "18:06", hijri_date: 18 },
+  { id: 19, date: "2026-03-07", day_en: "Saturday", day_ur: "ہفتہ", sehri: "05:04", iftar: "18:07", hijri_date: 19 },
+  { id: 20, date: "2026-03-08", day_en: "Sunday", day_ur: "اتوار", sehri: "05:03", iftar: "18:08", hijri_date: 20 },
+  { id: 21, date: "2026-03-09", day_en: "Monday", day_ur: "پیر", sehri: "05:01", iftar: "18:09", hijri_date: 21 },
+  { id: 22, date: "2026-03-10", day_en: "Tuesday", day_ur: "منگل", sehri: "05:00", iftar: "18:09", hijri_date: 22 },
+  { id: 23, date: "2026-03-11", day_en: "Wednesday", day_ur: "بدھ", sehri: "04:59", iftar: "18:10", hijri_date: 23 },
+  { id: 24, date: "2026-03-12", day_en: "Thursday", day_ur: "جمعرات", sehri: "04:58", iftar: "18:11", hijri_date: 24 },
+  { id: 25, date: "2026-03-13", day_en: "Friday", day_ur: "جمعہ", sehri: "04:56", iftar: "18:12", hijri_date: 25 },
+  { id: 26, date: "2026-03-14", day_en: "Saturday", day_ur: "ہفتہ", sehri: "04:55", iftar: "18:12", hijri_date: 26 },
+  { id: 27, date: "2026-03-15", day_en: "Sunday", day_ur: "اتوار", sehri: "04:54", iftar: "18:13", hijri_date: 27 },
+  { id: 28, date: "2026-03-16", day_en: "Monday", day_ur: "پیر", sehri: "04:53", iftar: "18:14", hijri_date: 28 },
+  { id: 29, date: "2026-03-17", day_en: "Tuesday", day_ur: "منگل", sehri: "04:51", iftar: "18:15", hijri_date: 29 },
+  { id: 30, date: "2026-03-18", day_en: "Wednesday", day_ur: "بدھ", sehri: "04:50", iftar: "18:16", hijri_date: 30 },
+];
+
+export const INITIAL_MASTER_DATA: LocationData[] = [
+  {
+    id: "sunwarian",
+    name_en: "Sunwarian, AJK",
+    name_ur: "سنواریاں، آزاد کشمیر",
+    timings: INITIAL_RAMADAN_DATA
+  }
+];
 
 export const DUAS = {
   sehri: {
@@ -56,10 +103,10 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     testAlarm: "Test Alarm",
     language: "Language",
     installGuide: "Install App",
-    adminLogin: "Admin Login",
+    adminLogin: "Local Admin",
     password: "Password",
     login: "Enter",
-    updateTimings: "Update Timings",
+    updateTimings: "Update Local Timings",
     save: "Save Changes",
     dashboard: "Home",
     calendar: "Calendar",
@@ -79,14 +126,27 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     iftarAlert20Min: "20 Minutes to Iftar.",
     sehriEnded: "Sehri Time Ended!",
     iftarTime: "Iftar Time!",
-    adminPanelTitle: "Admin Panel",
+    adminPanelTitle: "Local Data Panel",
     close: "Close",
     cancel: "Cancel",
     adminInstr: "Format must be strict JSON. Use 24h format.",
     adminSuccess: "Data Updated Successfully!",
     adminErrorJson: "Invalid JSON Format",
     adminErrorAuth: "Wrong Password",
-    pasteJson: "Paste the full JSON array here to update the calendar."
+    pasteJson: "Paste JSON to update your LOCAL calendar.",
+    autoSync: "Auto Sync Data",
+    autoSyncDesc: "Automatically update timings from the global server when online.",
+    globalAdminTitle: "Global Admin Panel",
+    downloadJson: "Download JSON",
+    refLabel: "Ref:",
+    eventTimeLabel: "Event Time",
+    selectLocation: "Change Location",
+    whatsappSupport: "WhatsApp Support",
+    online: "Online",
+    offline: "Offline",
+    addLocation: "Add New Location",
+    locationName: "Location Name",
+    deleteLocation: "Delete"
   },
   ur: {
     title: "سنواریاں رمضان",
@@ -100,7 +160,7 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     testAlarm: "الارم چیک کریں",
     language: "زبان",
     installGuide: "ایپ انسٹال کریں",
-    adminLogin: "ایڈمن لاگ ان",
+    adminLogin: "لوکل ایڈمن",
     password: "پاس ورڈ",
     login: "داخل ہوں",
     updateTimings: "اوقات اپڈیٹ کریں",
@@ -123,47 +183,26 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     iftarAlert20Min: "افطار میں 20 منٹ باقی ہیں۔",
     sehriEnded: "سحری کا وقت ختم ہو گیا!",
     iftarTime: "افطار کا وقت ہو گیا!",
-    adminPanelTitle: "ایڈمن پینل",
+    adminPanelTitle: "لوکل ڈیٹا پینل",
     close: "بند کریں",
     cancel: "منسوخ کریں",
     adminInstr: "JSON فارمیٹ درست ہونا چاہیے۔ 24 گھنٹے کا وقت استعمال کریں۔",
     adminSuccess: "ڈیٹا کامیابی سے اپ ڈیٹ ہو گیا!",
     adminErrorJson: "غلط JSON فارمیٹ",
     adminErrorAuth: "غلط پاس ورڈ",
-    pasteJson: "کلینڈر اپ ڈیٹ کرنے کے لیے مکمل JSON یہاں پیسٹ کریں۔"
+    pasteJson: "اپنے لوکل کلینڈر کو اپ ڈیٹ کرنے کے لیے JSON پیسٹ کریں۔",
+    autoSync: "آٹو سنک (Auto Sync)",
+    autoSyncDesc: "انٹرنیٹ ہونے پر عالمی سرور سے اوقات خود بخود اپ ڈیٹ کریں۔",
+    globalAdminTitle: "گلوبل ایڈمن پینل",
+    downloadJson: "JSON ڈاؤن لوڈ کریں",
+    refLabel: "حوالہ:",
+    eventTimeLabel: "وقت",
+    selectLocation: "علاقہ تبدیل کریں",
+    whatsappSupport: "واٹس ایپ سپورٹ",
+    online: "آن لائن",
+    offline: "آف لائن",
+    addLocation: "نیا علاقہ شامل کریں",
+    locationName: "علاقے کا نام",
+    deleteLocation: "حذف کریں"
   }
 };
-
-// Initial Data for Ramadan 2026 (Starting 17 Feb 2026)
-export const INITIAL_RAMADAN_DATA: RamadanTiming[] = [
-  { id: 1, date: "2026-02-17", day_en: "Tuesday", day_ur: "منگل", sehri: "05:25", iftar: "17:50", hijri_date: 1 },
-  { id: 2, date: "2026-02-18", day_en: "Wednesday", day_ur: "بدھ", sehri: "05:24", iftar: "17:51", hijri_date: 2 },
-  { id: 3, date: "2026-02-19", day_en: "Thursday", day_ur: "جمعرات", sehri: "05:23", iftar: "17:52", hijri_date: 3 },
-  { id: 4, date: "2026-02-20", day_en: "Friday", day_ur: "جمعہ", sehri: "05:22", iftar: "17:53", hijri_date: 4 },
-  { id: 5, date: "2026-02-21", day_en: "Saturday", day_ur: "ہفتہ", sehri: "05:21", iftar: "17:54", hijri_date: 5 },
-  { id: 6, date: "2026-02-22", day_en: "Sunday", day_ur: "اتوار", sehri: "05:20", iftar: "17:55", hijri_date: 6 },
-  { id: 7, date: "2026-02-23", day_en: "Monday", day_ur: "پیر", sehri: "05:19", iftar: "17:56", hijri_date: 7 },
-  { id: 8, date: "2026-02-24", day_en: "Tuesday", day_ur: "منگل", sehri: "05:17", iftar: "17:57", hijri_date: 8 },
-  { id: 9, date: "2026-02-25", day_en: "Wednesday", day_ur: "بدھ", sehri: "05:16", iftar: "17:58", hijri_date: 9 },
-  { id: 10, date: "2026-02-26", day_en: "Thursday", day_ur: "جمعرات", sehri: "05:15", iftar: "17:59", hijri_date: 10 },
-  { id: 11, date: "2026-02-27", day_en: "Friday", day_ur: "جمعہ", sehri: "05:14", iftar: "18:00", hijri_date: 11 },
-  { id: 12, date: "2026-02-28", day_en: "Saturday", day_ur: "ہفتہ", sehri: "05:13", iftar: "18:01", hijri_date: 12 },
-  { id: 13, date: "2026-03-01", day_en: "Sunday", day_ur: "اتوار", sehri: "05:11", iftar: "18:02", hijri_date: 13 },
-  { id: 14, date: "2026-03-02", day_en: "Monday", day_ur: "پیر", sehri: "05:10", iftar: "18:03", hijri_date: 14 },
-  { id: 15, date: "2026-03-03", day_en: "Tuesday", day_ur: "منگل", sehri: "05:09", iftar: "18:04", hijri_date: 15 },
-  { id: 16, date: "2026-03-04", day_en: "Wednesday", day_ur: "بدھ", sehri: "05:08", iftar: "18:04", hijri_date: 16 },
-  { id: 17, date: "2026-03-05", day_en: "Thursday", day_ur: "جمعرات", sehri: "05:06", iftar: "18:05", hijri_date: 17 },
-  { id: 18, date: "2026-03-06", day_en: "Friday", day_ur: "جمعہ", sehri: "05:05", iftar: "18:06", hijri_date: 18 },
-  { id: 19, date: "2026-03-07", day_en: "Saturday", day_ur: "ہفتہ", sehri: "05:04", iftar: "18:07", hijri_date: 19 },
-  { id: 20, date: "2026-03-08", day_en: "Sunday", day_ur: "اتوار", sehri: "05:03", iftar: "18:08", hijri_date: 20 },
-  { id: 21, date: "2026-03-09", day_en: "Monday", day_ur: "پیر", sehri: "05:01", iftar: "18:09", hijri_date: 21 },
-  { id: 22, date: "2026-03-10", day_en: "Tuesday", day_ur: "منگل", sehri: "05:00", iftar: "18:09", hijri_date: 22 },
-  { id: 23, date: "2026-03-11", day_en: "Wednesday", day_ur: "بدھ", sehri: "04:59", iftar: "18:10", hijri_date: 23 },
-  { id: 24, date: "2026-03-12", day_en: "Thursday", day_ur: "جمعرات", sehri: "04:58", iftar: "18:11", hijri_date: 24 },
-  { id: 25, date: "2026-03-13", day_en: "Friday", day_ur: "جمعہ", sehri: "04:56", iftar: "18:12", hijri_date: 25 },
-  { id: 26, date: "2026-03-14", day_en: "Saturday", day_ur: "ہفتہ", sehri: "04:55", iftar: "18:12", hijri_date: 26 },
-  { id: 27, date: "2026-03-15", day_en: "Sunday", day_ur: "اتوار", sehri: "04:54", iftar: "18:13", hijri_date: 27 },
-  { id: 28, date: "2026-03-16", day_en: "Monday", day_ur: "پیر", sehri: "04:53", iftar: "18:14", hijri_date: 28 },
-  { id: 29, date: "2026-03-17", day_en: "Tuesday", day_ur: "منگل", sehri: "04:51", iftar: "18:15", hijri_date: 29 },
-  { id: 30, date: "2026-03-18", day_en: "Wednesday", day_ur: "بدھ", sehri: "04:50", iftar: "18:16", hijri_date: 30 },
-];

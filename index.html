@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Sunwarian Ramadan Timing</title>
     <meta name="description" content="Ramadan Timings for Sunwarian, Azad Kashmir" />
     <meta name="theme-color" content="#047857" /> <!-- Matches emerald-700 -->
@@ -22,7 +22,8 @@
       body {
         -webkit-tap-highlight-color: transparent;
         background-color: #f1f5f9; /* slate-100 - Not white! */
-        overscroll-behavior-y: none; 
+        overscroll-behavior-y: auto; 
+        padding-bottom: env(safe-area-inset-bottom);
       }
       
       /* Traditional Urdu Font */
@@ -44,6 +45,22 @@
         0%, 100% { opacity: 1; }
         50% { opacity: .7; }
       }
+
+      @keyframes event-blink {
+        0%, 100% { background-color: #059669; }
+        50% { background-color: #10b981; }
+      }
+      .animate-event-blink {
+        animation: event-blink 0.8s infinite;
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
     </style>
   <script type="importmap">
 {
@@ -51,7 +68,8 @@
     "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
   }
 }
 </script>

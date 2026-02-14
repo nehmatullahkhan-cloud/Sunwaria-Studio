@@ -9,15 +9,14 @@ export const requestNotificationPermission = async () => {
 
 export const sendNotification = (title: string, body: string) => {
   if (Notification.permission === "granted") {
-    // Mobile vibration pattern: Vibrate 200ms, pause 100ms, vibrate 200ms
     if (navigator.vibrate) {
-        navigator.vibrate([200, 100, 200]);
+        navigator.vibrate([300, 100, 300]);
     }
     
     new Notification(title, {
       body,
-      icon: "https://cdn-icons-png.flaticon.com/512/4358/4358667.png", // Generic Mosque Icon
-      tag: "ramadan-alert" // Prevents stacking
+      icon: "https://cdn-icons-png.flaticon.com/512/4358/4358667.png",
+      tag: "ramadan-alert"
     });
   }
 };
@@ -27,34 +26,34 @@ export const playAlarm = (type: 'beep' | 'alarm') => {
   if (!AudioContext) return;
 
   const ctx = new AudioContext();
-  const oscillator = ctx.createOscillator();
-  const gainNode = ctx.createGain();
-
-  oscillator.connect(gainNode);
-  gainNode.connect(ctx.destination);
+  
+  const playTone = (freq: number, start: number, duration: number, vol: number = 0.2) => {
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(freq, start);
+    gainNode.gain.setValueAtTime(vol, start);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, start + duration);
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  };
 
   if (type === 'beep') {
-    // Simple short beep for 1 hour warning
-    oscillator.type = 'sine';
-    oscillator.frequency.value = 800;
-    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.5);
+    // Soft double chime
+    playTone(660, ctx.currentTime, 0.5);
+    playTone(880, ctx.currentTime + 0.2, 0.5);
   } else {
-    // More urgent alarm for exact time
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(600, ctx.currentTime);
-    oscillator.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-    
-    oscillator.start();
-    
-    // Pulse effect
-    gainNode.gain.setValueAtTime(0.2, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
-    gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 1.0);
-    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
-    
-    oscillator.stop(ctx.currentTime + 1.5);
+    // Melodic sequence for the main alarm
+    const now = ctx.currentTime;
+    const notes = [440, 554, 659, 880]; // A major arpeggio
+    notes.forEach((note, i) => {
+        playTone(note, now + i * 0.25, 0.8, 0.15);
+    });
+    // Repeat once
+    notes.forEach((note, i) => {
+        playTone(note, now + 1.2 + i * 0.25, 0.8, 0.15);
+    });
   }
 };

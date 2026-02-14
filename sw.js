@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sunwarian-ramadan-v2';
+const CACHE_NAME = 'sunwarian-ramadan-v3';
 
 // Files to cache immediately
 const PRECACHE_URLS = [
@@ -7,13 +7,12 @@ const PRECACHE_URLS = [
   './manifest.json',
   'https://cdn.tailwindcss.com',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap'
+  'https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&family=Gulzar&display=swap'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      // Precache core assets
       return cache.addAll(PRECACHE_URLS);
     })
   );
@@ -36,29 +35,27 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Skip cross-origin requests unless they are fonts/CSS we want to cache
+  const url = new URL(event.request.url);
+  
   event.respondWith(
     caches.match(event.request).then((response) => {
-      // Return cached response if found
       if (response) {
         return response;
       }
 
-      // Clone request for fetch
-      const fetchRequest = event.request.clone();
-
-      return fetch(fetchRequest).then((response) => {
-        // Check if valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+      return fetch(event.request).then((networkResponse) => {
+        // Cache valid responses dynamically
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-
-        // Cache new files (like JS bundles from Vercel) dynamically
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response;
+        return networkResponse;
+      }).catch(() => {
+        // Fallback for offline if not in cache
+        return new Response('Offline content not available', { status: 503 });
       });
     })
   );
