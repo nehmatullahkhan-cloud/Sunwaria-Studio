@@ -13,6 +13,8 @@ export interface LocationData {
   name_en: string;
   name_ur: string;
   timings: RamadanTiming[];
+  whatsapp_number?: string;
+  custom_message?: string;
 }
 
 export type Language = 'en' | 'ur';

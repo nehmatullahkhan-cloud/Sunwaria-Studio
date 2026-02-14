@@ -13,9 +13,14 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [editingLocId, setEditingLocId] = useState<string | null>(null);
+  
+  // Location Fields
   const [locNameEn, setLocNameEn] = useState('');
   const [locNameUr, setLocNameUr] = useState('');
+  const [locWhatsapp, setLocWhatsapp] = useState('');
+  const [locMessage, setLocMessage] = useState('');
   const [timingsJson, setTimingsJson] = useState('');
+  
   const [isSaving, setIsSaving] = useState(false);
 
   const handleLogin = () => {
@@ -27,6 +32,8 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     setEditingLocId('new');
     setLocNameEn('');
     setLocNameUr('');
+    setLocWhatsapp('');
+    setLocMessage('');
     setTimingsJson('[]');
   };
 
@@ -34,6 +41,8 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     setEditingLocId(loc.id);
     setLocNameEn(loc.name_en);
     setLocNameUr(loc.name_ur);
+    setLocWhatsapp(loc.whatsapp_number || '');
+    setLocMessage(loc.custom_message || '');
     setTimingsJson(JSON.stringify(loc.timings, null, 2));
   };
 
@@ -42,16 +51,22 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
       const parsedTimings: RamadanTiming[] = JSON.parse(timingsJson);
       let newData: LocationData[];
       
+      const locDataPartial = {
+        name_en: locNameEn,
+        name_ur: locNameUr,
+        timings: parsedTimings,
+        whatsapp_number: locWhatsapp,
+        custom_message: locMessage
+      };
+
       if (editingLocId === 'new') {
         const newLoc: LocationData = {
           id: locNameEn.toLowerCase().replace(/\s+/g, '-'),
-          name_en: locNameEn,
-          name_ur: locNameUr,
-          timings: parsedTimings
+          ...locDataPartial
         };
         newData = [...data, newLoc];
       } else {
-        newData = data.map(l => l.id === editingLocId ? { ...l, name_en: locNameEn, name_ur: locNameUr, timings: parsedTimings } : l);
+        newData = data.map(l => l.id === editingLocId ? { ...l, ...locDataPartial } : l);
       }
       
       onUpdate(newData);
@@ -150,8 +165,8 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
         </div>
 
         {editingLocId ? (
-            <div className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-white p-6 rounded-xl shadow-sm space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-xs font-bold text-gray-400 block mb-1">Name (EN)</label>
                         <input value={locNameEn} onChange={e => setLocNameEn(e.target.value)} className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500" />
@@ -161,8 +176,33 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
                         <input value={locNameUr} onChange={e => setLocNameUr(e.target.value)} className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500 font-urdu" dir="rtl" />
                     </div>
                 </div>
-                <label className="text-xs font-bold text-gray-400 block mb-1">Timings JSON</label>
-                <textarea value={timingsJson} onChange={e => setTimingsJson(e.target.value)} className="w-full h-80 font-mono text-[10px] p-4 bg-slate-50 border rounded-xl" />
+
+                <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-1">WhatsApp Number (Optional)</label>
+                    <input 
+                        value={locWhatsapp} 
+                        onChange={e => setLocWhatsapp(e.target.value)} 
+                        placeholder="e.g., 923191490380"
+                        className="w-full border p-3 rounded-xl focus:ring-2 ring-blue-500" 
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Leave empty to use default.</p>
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-1">Custom Home Screen Message (Optional)</label>
+                    <textarea 
+                        value={locMessage} 
+                        onChange={e => setLocMessage(e.target.value)} 
+                        placeholder="Type announcements here..."
+                        className="w-full h-24 border p-3 rounded-xl focus:ring-2 ring-blue-500" 
+                    />
+                </div>
+
+                <div>
+                    <label className="text-xs font-bold text-gray-400 block mb-1">Timings JSON</label>
+                    <textarea value={timingsJson} onChange={e => setTimingsJson(e.target.value)} className="w-full h-64 font-mono text-[10px] p-4 bg-slate-50 border rounded-xl" />
+                </div>
+                
                 <div className="flex gap-2 mt-4">
                     <button onClick={() => setEditingLocId(null)} className="flex-1 bg-gray-100 py-3 rounded-xl font-bold">{translation.cancel}</button>
                     <button onClick={saveLocation} className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-bold">{translation.save}</button>
@@ -175,6 +215,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
                         <div>
                             <h3 className="font-bold text-gray-800">{loc.name_en}</h3>
                             <p className="text-xs text-gray-400">{loc.timings.length} Days</p>
+                            {loc.custom_message && <span className="inline-block mt-1 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-[9px] rounded-md">Has Message</span>}
                         </div>
                         <div className="flex gap-2">
                             <button onClick={() => startEditLocation(loc)} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i className="fas fa-edit"></i></button>

@@ -50,6 +50,10 @@ const MainApp = () => {
 
   const activeLocation = masterData.find(l => l.id === settings.selectedLocationId) || masterData[0];
   const activeTimings = activeLocation.timings;
+  
+  // Dynamic settings from Location Data
+  const activeWhatsApp = activeLocation.whatsapp_number || WHATSAPP_NUMBER;
+  const activeMessage = activeLocation.custom_message;
 
   const performTimeSync = async () => {
     const res = await syncTimeWithNetwork();
@@ -207,6 +211,19 @@ const MainApp = () => {
                              <p className="text-lg font-bold text-gray-800 font-mono mt-1">{formatTo12h(todayData?.iftar)}</p>
                         </div>
                     </div>
+                    
+                    {/* Custom Announcement Message from Admin */}
+                    {activeMessage && (
+                        <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-2xl shadow-sm mb-6 text-center animate-pulse-slow">
+                            <div className="flex items-center justify-center gap-2 mb-2 text-emerald-800">
+                                <i className="fas fa-bullhorn text-sm"></i>
+                                <h3 className="font-bold text-sm uppercase tracking-wider">Announcement</h3>
+                            </div>
+                            <p className="text-sm text-emerald-700 font-medium whitespace-pre-line leading-relaxed">
+                                {activeMessage}
+                            </p>
+                        </div>
+                    )}
                 </>
             } />
             <Route path="/calendar" element={<Calendar data={activeTimings} translation={t} language={settings.language} />} />
@@ -246,7 +263,7 @@ const MainApp = () => {
                         </div>
                     </div>
 
-                    <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700">
+                    <a href={`https://wa.me/${activeWhatsApp}`} target="_blank" rel="noopener noreferrer" className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center text-gray-700">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-xl"><i className="fab fa-whatsapp"></i></div>
                             <span className={`font-bold text-lg ${settings.language === 'ur' ? 'font-urdu-heading' : ''}`}>{t.whatsappSupport}</span>

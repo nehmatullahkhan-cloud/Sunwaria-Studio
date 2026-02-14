@@ -29,7 +29,9 @@ const LocationSchema = new mongoose.Schema({
   id: { type: String, unique: true },
   name_en: String,
   name_ur: String,
-  timings: [TimingSchema]
+  timings: [TimingSchema],
+  whatsapp_number: String,
+  custom_message: String
 });
 
 const LocationModel = mongoose.model('Location', LocationSchema);
