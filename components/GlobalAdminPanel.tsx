@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LocationData, Translation, RamadanTiming } from '../types';
+import { REMOTE_DATA_URL } from '../constants';
 
 interface GlobalAdminPanelProps {
   data: LocationData[];
@@ -15,6 +16,7 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
   const [locNameEn, setLocNameEn] = useState('');
   const [locNameUr, setLocNameUr] = useState('');
   const [timingsJson, setTimingsJson] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleLogin = () => {
     if (password === 'AhsaanGlobal786') setIsAuthenticated(true);
@@ -74,24 +76,49 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     a.click();
   };
 
+  const pushToCloud = async () => {
+    if(!window.confirm("This will overwrite the database in MongoDB. Continue?")) return;
+    
+    setIsSaving(true);
+    try {
+        const response = await fetch(REMOTE_DATA_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: password, data: data })
+        });
+        
+        const result = await response.json();
+        if (response.ok && result.success) {
+            alert("✅ Successfully synced with MongoDB!");
+        } else {
+            alert("❌ Sync Failed: " + (result.error || "Unknown error"));
+        }
+    } catch (error) {
+        alert("❌ Network Error: Is the server running?");
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="fixed inset-0 bg-slate-900 flex items-center justify-center z-[100]">
         <div className="bg-white p-6 rounded-2xl w-80 shadow-2xl">
           <div className="text-center mb-6">
-             <i className="fas fa-globe-asia text-4xl text-blue-600 mb-2"></i>
+             <i className="fas fa-database text-4xl text-green-600 mb-2"></i>
              <h2 className="text-xl font-bold text-slate-800">{translation.globalAdminTitle}</h2>
+             <p className="text-xs text-gray-500">Real Admin Access</p>
           </div>
           <input
             type="password"
             placeholder={translation.password}
-            className="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full border border-gray-300 p-3 rounded-lg mb-4 focus:ring-2 focus:ring-green-500 outline-none"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <div className="flex space-x-2">
             <button onClick={onClose} className="flex-1 bg-gray-200 py-2 rounded-lg font-bold">{translation.cancel}</button>
-            <button onClick={handleLogin} className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold hover:bg-blue-700">{translation.login}</button>
+            <button onClick={handleLogin} className="flex-1 bg-green-600 text-white py-2 rounded-lg font-bold hover:bg-green-700">{translation.login}</button>
           </div>
         </div>
       </div>
@@ -102,9 +129,22 @@ const GlobalAdminPanel: React.FC<GlobalAdminPanelProps> = ({ data, onUpdate, tra
     <div className="fixed inset-0 bg-slate-100 z-[100] overflow-y-auto font-sans p-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800">{translation.globalAdminTitle}</h2>
+            <div>
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <i className="fas fa-database text-green-600"></i> {translation.globalAdminTitle}
+                </h2>
+                <p className="text-xs text-gray-400">Connected to: namaz_timing</p>
+            </div>
             <div className="flex gap-2">
-                <button onClick={downloadMaster} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-xs font-bold"><i className="fas fa-download mr-1"></i> {translation.downloadJson}</button>
+                <button 
+                    onClick={pushToCloud} 
+                    disabled={isSaving}
+                    className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 text-white shadow-md transition-all ${isSaving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'}`}
+                >
+                    {isSaving ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-cloud-upload-alt"></i>}
+                    Save to Cloud
+                </button>
+                <button onClick={downloadMaster} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-xs font-bold"><i className="fas fa-download mr-1"></i> JSON</button>
                 <button onClick={onClose} className="bg-red-50 text-red-600 px-4 py-2 rounded-lg font-bold">{translation.close}</button>
             </div>
         </div>

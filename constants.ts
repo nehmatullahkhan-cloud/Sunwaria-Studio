@@ -2,8 +2,12 @@ import { RamadanTiming, Translation, Language, LocationData } from './types';
 
 export const ADMIN_ROUTE = "/local-admin";
 export const GLOBAL_ADMIN_ROUTE = "/admin/ahsaan";
-export const REMOTE_DATA_URL = "https://sunwarian-ramadan.vercel.app/data/master.json"; 
-export const WHATSAPP_NUMBER = "923191490380"; // Updated WhatsApp support number
+
+// Pointing to the new Node.js + MongoDB backend
+// When deploying, change 'localhost' to your actual server domain
+export const REMOTE_DATA_URL = "http://localhost:5000/api/locations"; 
+
+export const WHATSAPP_NUMBER = "923191490380";
 
 export const STORAGE_KEY_DATA = "sunwarian_ramadan_master_v1"; 
 export const STORAGE_KEY_SETTINGS = "sunwarian_settings_v5";
@@ -136,7 +140,7 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     pasteJson: "Paste JSON to update your LOCAL calendar.",
     autoSync: "Auto Sync Data",
     autoSyncDesc: "Automatically update timings from the global server when online.",
-    globalAdminTitle: "Global Admin Panel",
+    globalAdminTitle: "Global Admin (MongoDB)",
     downloadJson: "Download JSON",
     refLabel: "Ref:",
     eventTimeLabel: "Event Time",
@@ -193,7 +197,7 @@ export const TRANSLATIONS: Record<Language, Translation> = {
     pasteJson: "اپنے لوکل کلینڈر کو اپ ڈیٹ کرنے کے لیے JSON پیسٹ کریں۔",
     autoSync: "آٹو سنک (Auto Sync)",
     autoSyncDesc: "انٹرنیٹ ہونے پر عالمی سرور سے اوقات خود بخود اپ ڈیٹ کریں۔",
-    globalAdminTitle: "گلوبل ایڈمن پینل",
+    globalAdminTitle: "گلوبل ایڈمن (MongoDB)",
     downloadJson: "JSON ڈاؤن لوڈ کریں",
     refLabel: "حوالہ:",
     eventTimeLabel: "وقت",
